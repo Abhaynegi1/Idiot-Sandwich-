@@ -15,8 +15,8 @@ gantt
     Phase 0.002 — Architecture Finalization               :done, p2, 2026-09, 1d
     Phase 0.003 — Project Initialization                  :done, p3, 2026-09, 1d
     section Prototyping
-    Phase 0.1   — Core Game Prototype (Next)             :active, p4, after p3, 5d
-    Phase 0.2   — AI Matchup System                      :p5, after p4, 5d
+    Phase 0.1   — Core Game Prototype                     :done, p4, 2026-09, 1d
+    Phase 0.2   — AI Matchup System (Next)                :active, p5, after p4, 5d
     Phase 0.3   — Image Generation System                :p6, after p5, 5d
     section Persistence & Polish
     Phase 0.4   — Persistence & State Management         :p7, after p6, 4d
@@ -51,18 +51,24 @@ gantt
 - **Deliverables:**
   - Next.js (App Router) + TypeScript project with ESLint.
   - Core vanilla CSS design system and tokens in `globals.css`.
-  - Responsive landing teaser with glassmorphism and keyframe animations.
+  - Minimal hand-drawn notebook paper theme (`#F7F4EA`).
   - Environment variable schema in `.env.example`.
   - Clean production build and linting checks passed.
 
 ---
 
-### Phase 0.1 — Core Game Prototype (Mock Engine) 🟡 *(NEXT)*
+### Phase 0.1 — Core Game Prototype (Mock Engine) 🟢 *(COMPLETED)*
 - **Objective:** Deliver a playable client-side loop with mocked AI and static sandwich visuals.
-- **Key Tasks:**
-  - Implement the Arena interface and input bar.
-  - Implement deterministic turn loop with hardcoded/mocked matchups.
-  - Validate state transitions (Champion dethroning, lineage tracking).
+- **Deliverables:**
+  - Semantic mock adjudicator (`src/lib/engine/mock-adjudicator.ts`) with entity normalization, categories, and contextual counter rules.
+  - Complete duel staging: input locks, handwritten loading messages, confrontation clash phase, and humorous verdict presentation.
+  - Defense streak tracking and collapsible notebook battle history drawer.
+  - Unit test suite (`npm test`) with 100% passing tests for normalization, counters, and scale advantages.
+
+---
+
+### Phase 0.2 — AI Matchup System Integration 🟡 *(NEXT)*
+- **Objective:** Connect the live Google Gemini 1.5 Flash service for structured semantic adjudication.
 
 ---
 
