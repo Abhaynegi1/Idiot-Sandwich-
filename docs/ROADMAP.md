@@ -11,9 +11,9 @@ gantt
     title Idiot Sandwich Milestone Roadmap
     dateFormat  YYYY-MM
     section Inception & Design
-    Phase 0.001 — Documentation Initialization (Current) :done, p1, 2026-09, 1d
-    Phase 0.002 — Architecture Finalization               :active, p2, after p1, 2d
-    Phase 0.003 — Project Initialization                  :p3, after p2, 2d
+    Phase 0.001 — Documentation Initialization           :done, p1, 2026-09, 1d
+    Phase 0.002 — Architecture Finalization               :done, p2, 2026-09, 1d
+    Phase 0.003 — Project Initialization (Next)          :active, p3, after p2, 2d
     section Prototyping
     Phase 0.1   — Core Game Prototype                    :p4, after p3, 5d
     Phase 0.2   — AI Matchup System                      :p5, after p4, 5d
@@ -28,29 +28,30 @@ gantt
 
 ## 📍 Phased Milestones
 
-### Phase 0.001 — Documentation Initialization 🟢 *(CURRENT)*
+### Phase 0.001 — Documentation Initialization 🟢 *(COMPLETED)*
 - **Objective:** Establish a comprehensive, clean architectural and conceptual documentation baseline.
 - **Deliverables:** Complete `/docs` architecture specifications, conceptual rules, data models, and API blueprints.
 - **Constraints:** Zero application code, no database migrations, no third-party SDK installations.
 
 ---
 
-### Phase 0.002 — Architecture & Decision Finalization 🟡 *(UPCOMING)*
+### Phase 0.002 — Architecture Finalization 🟢 *(COMPLETED)*
 - **Objective:** Resolve critical open design questions regarding AI evaluation strategies and provider choices.
-- **Key Tasks:**
-  - Select primary LLM provider and structured output engine.
-  - Settle evaluation scoring methodology (Pure AI vs. Rule-Engine Hybrid).
-  - Select image generation provider and storage CDN partner.
-  - Finalize database hosting provider.
+- **Outcomes:**
+  - Standardized on **Google Gemini 1.5 Flash** for low-latency structured JSON evaluation ([DEC-010](./DECISIONS.md#dec-010)).
+  - Adopted **Option C: Hybrid AI + Rule Guardrails** for matchup resolution ([DEC-011](./DECISIONS.md#dec-011)).
+  - Adopted **Cache-First + Async Winner Generation** with stylized placeholders ([DEC-013](./DECISIONS.md#dec-013)).
+  - Standardized on **Neon Serverless PostgreSQL + Drizzle ORM** ([DEC-012](./DECISIONS.md#dec-012)).
+  - Confirmed **Next.js (App Router) + TypeScript** stack ([DEC-007](./DECISIONS.md#dec-007)).
 
 ---
 
-### Phase 0.003 — Project Initialization
+### Phase 0.003 — Project Initialization 🟡 *(NEXT)*
 - **Objective:** Scaffold the technical repository foundation.
 - **Key Tasks:**
   - Initialize Next.js project with TypeScript, ESLint, and Prettier.
-  - Configure Tailwind / Vanilla CSS design tokens.
-  - Set up environment variable schemas and config validation.
+  - Configure design tokens and vanilla CSS system.
+  - Set up environment variable schemas (`.env.example`) and config validation.
   - Configure initial test harness (Vitest / Playwright).
 
 ---
@@ -67,7 +68,7 @@ gantt
 ### Phase 0.2 — AI Matchup System Integration
 - **Objective:** Connect the live LLM service for structured semantic adjudication.
 - **Key Tasks:**
-  - Integrate LLM client with structured Zod response schema.
+  - Integrate Gemini 1.5 Flash client with structured Zod response schema.
   - Implement prompt templates for classification and comedic reasoning.
   - Implement prompt injection mitigations and basic content moderation.
 
@@ -83,7 +84,7 @@ gantt
 ---
 
 ### Phase 0.4 — Database Persistence & Session History
-- **Objective:** Persist games, turns, and champion lineages to PostgreSQL.
+- **Objective:** Persist games, turns, and champion lineages to Neon PostgreSQL.
 - **Key Tasks:**
   - Deploy PostgreSQL database and Drizzle ORM schema migrations.
   - Implement `/api/game` and `/api/game/:id/challenge` endpoints.

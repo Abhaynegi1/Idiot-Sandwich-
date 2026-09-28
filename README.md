@@ -27,8 +27,8 @@ You enter an arbitrary object, concept, or cosmic entity. The game converts it i
 
 ## Status
 
-**Phase 0.001 — Documentation Initialization**  
-The project is currently establishing design specifications, system architectures, and documentation. No application code has been implemented yet.
+**Phase 0.002 — Architecture Finalization (Completed)**  
+Design specifications, provider selections, and system architectures are locked in. The project is ready for **Phase 0.003 — Project Initialization**.
 
 ## Documentation
 
@@ -36,11 +36,11 @@ Full architectural specifications, game rules, AI pipelines, and roadmap can be 
 
 👉 **[Explore Full Project Documentation](./docs/README.md)**
 
-## Planned Stack (Proposed)
+## Finalized Stack (Accepted)
 
 - **Frontend & Backend:** Next.js (App Router) + TypeScript
-- **Database:** PostgreSQL
+- **Database:** Neon Serverless PostgreSQL
 - **ORM:** Drizzle ORM
-- **AI Engine:** Structured LLM evaluation API
-- **Visuals:** Dynamic Image Generation API
-- **Deployment:** Vercel (or equivalent edge/serverless platform)
+- **AI Adjudication:** Google Gemini 1.5 Flash (Structured JSON)
+- **Visuals:** Cache-First Async Sandwich Generation
+- **Hosting:** Vercel

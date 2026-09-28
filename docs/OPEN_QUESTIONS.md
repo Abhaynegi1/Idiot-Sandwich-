@@ -4,6 +4,18 @@
 
 ---
 
+## ✅ Resolved in Phase 0.002 (Architecture Finalization)
+
+| Question Area | Resolution | Decision Reference |
+| :--- | :--- | :--- |
+| **Primary LLM Model** | **Google Gemini 1.5 Flash** selected for sub-second latency, low token cost, and strict `responseSchema` support. | [DEC-010](./DECISIONS.md#dec-010) |
+| **Matchup Scoring Model** | **Option C: Hybrid AI + Rule Guardrails** — AI evaluates clash with structured JSON; engine enforces deterministic invariants, tiebreakers, and caching. | [DEC-011](./DECISIONS.md#dec-011) |
+| **Image Generation Strategy** | **Cache-First + Async Winner Flow** — battles resolve instantly with stylized placeholders; image generation is triggered asynchronously for victors and cached permanently. | [DEC-013](./DECISIONS.md#dec-013) |
+| **Database Platform** | **Neon Serverless PostgreSQL + Drizzle ORM** for serverless scaling, connection pooling, and zero-maintenance operations. | [DEC-006](./DECISIONS.md#dec-006), [DEC-012](./DECISIONS.md#dec-012) |
+| **Application Framework** | **Next.js (App Router) + TypeScript** for full-stack developer velocity. | [DEC-007](./DECISIONS.md#dec-007) |
+
+---
+
 ## ❓ 1. Game Logic & Adjudication Dilemmas
 
 1. **Should entity power be expressed as discrete numerical stats?**
@@ -19,31 +31,24 @@
 
 ---
 
-## 🤖 2. AI Architecture & Orchestration Dilemmas
+## 🤖 2. AI Architecture & Prompt Engineering Dilemmas
 
-1. **Which primary LLM model family should be selected?**
-   - *Consideration:* Trade-offs between latency, token cost, comedic wit, and structured JSON reliability (e.g., Google Gemini 1.5 Flash vs. OpenAI GPT-4o-mini vs. Anthropic Claude 3.5 Haiku).
-2. **Single consolidated AI call vs. Multi-stage pipeline?**
-   - *Option A:* One comprehensive call that interprets input, profiles attributes, adjudicates the duel, and writes the comedic reason. (Faster, cheaper).
-   - *Option B:* Multi-agent pipeline with dedicated prompt templates for moderation, entity profiling, and battle commentary. (Higher quality, higher latency and cost).
-3. **How should AI hallucinations be intercepted?**
+1. **Single consolidated AI call vs. Multi-stage pipeline?**
+   - *Option A:* One comprehensive Gemini call that interprets input, profiles attributes, adjudicates the duel, and writes the comedic reason. (Faster, cheaper — recommended for MVP).
+   - *Option B:* Multi-step pipeline with dedicated calls for moderation, entity profiling, and battle commentary. (Higher quality, higher latency).
+2. **How should AI hallucinations be intercepted?**
    - *Consideration:* What happens if the model claims a toaster has psychic powers when the player didn't specify that?
-4. **How aggressive should prompt injection defenses be?**
+3. **How aggressive should prompt injection defenses be?**
    - *Consideration:* Overly strict filters might falsely reject benign, absurd inputs like `"A hacker breaking into a mainframe sandwich"`.
 
 ---
 
-## 🖼️ 3. Image Generation & Visual Dilemmas
+## 🖼️ 3. Image Generation & Visual Provider Dilemmas
 
-1. **Which image generation provider offers the best surrealist food fidelity?**
-   - *Consideration:* Evaluating Google Imagen 3, OpenAI DALL-E 3, Midjourney API proxies, or self-hosted Flux/Stable Diffusion on cost, speed, and culinary realism.
-2. **Should every challenger generate an image immediately?**
-   - *Option A:* Generate images for all contenders synchronously. (Slows turn speed, increases API spending).
-   - *Option B:* Generate images only for victors that claim the championship, using stylistic procedural placeholders for failed challengers.
-3. **What is the acceptable per-image latency budget?**
-   - *Consideration:* If an image takes 6 seconds to render, how should the UI maintain engagement during the battle animation?
-4. **What visual fallback strategy is cleanest when generation fails?**
-   - *Consideration:* Stylized vector art cards, cartoon bread stamps, or humorous apology graphics?
+1. **Which specific image generation provider offers the best surrealist food fidelity?**
+   - *Consideration:* Evaluating Google Imagen 3 (via Gemini API) vs. OpenAI DALL-E 3 vs. Fal.ai / Replicate (Flux-schnell) on cost, speed, and culinary realism.
+2. **What visual fallback strategy is cleanest when generation fails or is pending?**
+   - *Consideration:* Stylized vector art cards, procedural CSS toasted bread cards with stamp typography, or humorous culinary icons?
 
 ---
 
