@@ -13,9 +13,9 @@ gantt
     section Inception & Design
     Phase 0.001 — Documentation Initialization           :done, p1, 2026-09, 1d
     Phase 0.002 — Architecture Finalization               :done, p2, 2026-09, 1d
-    Phase 0.003 — Project Initialization (Next)          :active, p3, after p2, 2d
+    Phase 0.003 — Project Initialization                  :done, p3, 2026-09, 1d
     section Prototyping
-    Phase 0.1   — Core Game Prototype                    :p4, after p3, 5d
+    Phase 0.1   — Core Game Prototype (Next)             :active, p4, after p3, 5d
     Phase 0.2   — AI Matchup System                      :p5, after p4, 5d
     Phase 0.3   — Image Generation System                :p6, after p5, 5d
     section Persistence & Polish
@@ -46,17 +46,18 @@ gantt
 
 ---
 
-### Phase 0.003 — Project Initialization 🟡 *(NEXT)*
+### Phase 0.003 — Project Initialization 🟢 *(COMPLETED)*
 - **Objective:** Scaffold the technical repository foundation.
-- **Key Tasks:**
-  - Initialize Next.js project with TypeScript, ESLint, and Prettier.
-  - Configure design tokens and vanilla CSS system.
-  - Set up environment variable schemas (`.env.example`) and config validation.
-  - Configure initial test harness (Vitest / Playwright).
+- **Deliverables:**
+  - Next.js (App Router) + TypeScript project with ESLint.
+  - Core vanilla CSS design system and tokens in `globals.css`.
+  - Responsive landing teaser with glassmorphism and keyframe animations.
+  - Environment variable schema in `.env.example`.
+  - Clean production build and linting checks passed.
 
 ---
 
-### Phase 0.1 — Core Game Prototype (Mock Engine)
+### Phase 0.1 — Core Game Prototype (Mock Engine) 🟡 *(NEXT)*
 - **Objective:** Deliver a playable client-side loop with mocked AI and static sandwich visuals.
 - **Key Tasks:**
   - Implement the Arena interface and input bar.
