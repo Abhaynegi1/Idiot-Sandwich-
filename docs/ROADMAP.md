@@ -16,8 +16,8 @@ gantt
     Phase 0.003 — Project Initialization                  :done, p3, 2026-09, 1d
     section Prototyping
     Phase 0.1   — Core Game Prototype                     :done, p4, 2026-09, 1d
-    Phase 0.2   — AI Matchup System (Next)                :active, p5, after p4, 5d
-    Phase 0.3   — Image Generation System                :p6, after p5, 5d
+    Phase 0.2   — AI Matchup System (Next)                :done, p5, after p4, 1d
+    Phase 0.3   — Image Generation System                 :active, p6, after p5, 5d
     section Persistence & Polish
     Phase 0.4   — Persistence & State Management         :p7, after p6, 4d
     Phase 0.5   — UI Polish & Animations                 :p8, after p7, 5d
@@ -67,21 +67,20 @@ gantt
 
 ---
 
-### Phase 0.2 — AI Matchup System Integration 🟡 *(NEXT)*
-- **Objective:** Connect the live Google Gemini 1.5 Flash service for structured semantic adjudication.
+### Phase 0.2 — AI Matchup System Integration 🟢 *(COMPLETED)*
+- **Objective:** Connect the live Google Gemini service for structured semantic adjudication with safety boundaries and deterministic fallback.
+- **Deliverables:**
+  - `@google/genai` client integration with candidate model fallback (`gemini-3.5-flash-lite`, `gemini-flash-latest`, etc.).
+  - Rigid structured JSON schema validation via Zod (`src/lib/engine/schemas.ts`) enforcing `winner`, `confidence`, `shortHeadline`, `humorousReason`, `dominantFactor`, and `challengerProfile`.
+  - Input sanitizer and security moderation layer (`src/lib/security/sanitizer.ts`) defending against prompt injection and toxic terms.
+  - Hybrid adjudication engine with Option C fallback (`src/lib/engine/gemini-adjudicator.ts`) to ensure 100% offline/dev reliability.
+  - Next.js server route handler (`POST /api/challenge`) isolating credentials from client bundle.
+  - UI integration in `src/app/page.tsx` with live referee indicator, loading interval cycling, and in-game safety warning cards.
+  - Unit test suite expanded to 11 tests across engine, schemas, and security sanitizer.
 
 ---
 
-### Phase 0.2 — AI Matchup System Integration
-- **Objective:** Connect the live LLM service for structured semantic adjudication.
-- **Key Tasks:**
-  - Integrate Gemini 1.5 Flash client with structured Zod response schema.
-  - Implement prompt templates for classification and comedic reasoning.
-  - Implement prompt injection mitigations and basic content moderation.
-
----
-
-### Phase 0.3 — Image Generation & Asset Pipeline
+### Phase 0.3 — Image Generation & Asset Pipeline 🟡 *(NEXT)*
 - **Objective:** Bring sandwich visuals to life dynamically.
 - **Key Tasks:**
   - Integrate image generation API with food-photography prompt templates.

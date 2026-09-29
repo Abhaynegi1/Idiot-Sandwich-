@@ -31,10 +31,12 @@ export default function Home() {
   const [champion, setChampion] = useState<GameEntity>(STARTER_CHAMPION);
   const [inputValue, setInputValue] = useState("");
   const [loadingStep, setLoadingStep] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeDuel, setActiveDuel] = useState<{
     challenger: GameEntity;
     verdict: AdjudicationVerdict;
     phase: "clash" | "verdict";
+    adjudicatorSource?: "gemini" | "deterministic-fallback";
   } | null>(null);
   const [history, setHistory] = useState<TurnHistoryRecord[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -47,28 +49,75 @@ export default function Home() {
     }
   }, [loadingStep, activeDuel]);
 
-  const handleFight = (e?: React.FormEvent) => {
+  const handleFight = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const query = inputValue.trim();
     if (!query || loadingStep || activeDuel) return;
 
-    // Pick random loading message
-    const randomNote = LOADING_NOTES[Math.floor(Math.random() * LOADING_NOTES.length)];
-    setLoadingStep(randomNote);
+    setErrorMessage(null);
+    let noteIndex = Math.floor(Math.random() * LOADING_NOTES.length);
+    setLoadingStep(LOADING_NOTES[noteIndex]);
 
-    // 1. Normalize entity
-    const challenger = normalizeEntity(query);
+    const intervalId = setInterval(() => {
+      noteIndex = (noteIndex + 1) % LOADING_NOTES.length;
+      setLoadingStep(LOADING_NOTES[noteIndex]);
+    }, 1200);
 
-    // 2. Evaluate duel using engine
-    const verdict = adjudicateDuel(champion, challenger);
+    try {
+      let challenger: GameEntity;
+      let verdict: AdjudicationVerdict;
+      let adjudicatorSource: "gemini" | "deterministic-fallback" = "gemini";
 
-    // 3. Staging the confrontation transition
-    setTimeout(() => {
+      try {
+        const res = await fetch("/api/challenge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rawInput: query,
+            champion: {
+              id: champion.id,
+              canonicalName: champion.canonicalName,
+              sandwichDescription: champion.sandwichDescription,
+              category: champion.category,
+              power: champion.power,
+              scaleTier: champion.scaleTier,
+              defensesWon: champion.defensesWon,
+            },
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          clearInterval(intervalId);
+          setLoadingStep(null);
+          setErrorMessage(data.error || "The challenge could not be served. Try again!");
+          return;
+        }
+
+        challenger = data.challenger;
+        adjudicatorSource = data.adjudicatorSource || "gemini";
+        verdict = {
+          winner: data.winner,
+          confidence: data.evaluation.confidence,
+          shortHeadline: data.evaluation.shortHeadline,
+          humorousReason: data.evaluation.humorousReason,
+          dominantFactor: data.evaluation.dominantFactor,
+        };
+      } catch {
+        // Deterministic fallback if API endpoint is unreachable
+        challenger = normalizeEntity(query);
+        verdict = adjudicateDuel(champion, challenger);
+        adjudicatorSource = "deterministic-fallback";
+      }
+
+      clearInterval(intervalId);
       setLoadingStep(null);
       setActiveDuel({
         challenger,
         verdict,
         phase: "clash",
+        adjudicatorSource,
       });
 
       // Quick standoff pause (800ms) before verdict reveal
@@ -101,7 +150,11 @@ export default function Home() {
 
         setInputValue("");
       }, 750);
-    }, 700);
+    } catch {
+      clearInterval(intervalId);
+      setLoadingStep(null);
+      setErrorMessage("Something went wrong in the sandwich arena. Please try again.");
+    }
   };
 
   const dismissDuel = () => {
@@ -160,9 +213,21 @@ export default function Home() {
                 fontSize: "0.95rem",
                 color: "var(--ink-pencil)",
                 letterSpacing: "0.02em",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
               }}
             >
-              phase 0.1 prototype
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "7px",
+                  height: "7px",
+                  borderRadius: "50%",
+                  backgroundColor: "var(--ink-green)",
+                }}
+              />
+              phase 0.2 • live ai
             </span>
           </div>
 
@@ -414,10 +479,17 @@ export default function Home() {
                 color: "var(--ink-pencil)",
                 display: "flex",
                 gap: "12px",
+                flexWrap: "wrap",
+                alignItems: "center",
               }}
             >
               <span>factor: {activeDuel.verdict.dominantFactor}</span>
+              <span>•</span>
               <span>confidence: {Math.round(activeDuel.verdict.confidence * 100)}%</span>
+              <span>•</span>
+              <span style={{ color: activeDuel.adjudicatorSource === "gemini" ? "var(--ink-green)" : "var(--ink-pencil)" }}>
+                {activeDuel.adjudicatorSource === "gemini" ? "⚡ Gemini 1.5 Flash" : "📏 Fallback Rules"}
+              </span>
             </div>
           </div>
         )}
@@ -511,6 +583,26 @@ export default function Home() {
               FIGHT
             </button>
           </form>
+
+          {/* Error Message Display */}
+          {errorMessage && (
+            <div
+              className="font-hand animate-slam"
+              style={{
+                marginTop: "10px",
+                padding: "6px 12px",
+                color: "var(--ink-red)",
+                fontSize: "1.05rem",
+                backgroundColor: "#FEF2F2",
+                border: "1.5px dashed var(--ink-red)",
+                borderRadius: "2px",
+                textAlign: "center",
+                boxShadow: "var(--shadow-sketch-sm)",
+              }}
+            >
+              ⚠️ {errorMessage}
+            </div>
+          )}
 
           {/* Quick inspiration chips */}
           <div
