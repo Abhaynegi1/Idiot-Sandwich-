@@ -1,28 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Patrick+Hand&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
   /* Minimal Notebook Paper Palette */
   --bg-paper: #F7F4EA;
-  --bg-paper-subtle: #EEEAE0;
-  --bg-paper-border: #E5E0D5;
+  --bg-paper-muted: #EAE5D9;
   
   /* Ink & Pencil */
   --ink-primary: #171717;
-  --ink-pencil: #5F5B53;
-  --ink-faint: #8E8A81;
+  --ink-secondary: #66625A;
   
   /* Highlighter Accent */
   --accent-yellow: #F2C94C;
   --accent-yellow-light: #FCE89B;
-  
-  /* Subtle status ink */
-  --ink-red: #D94841;
-  --ink-green: #2E8540;
 
   /* Typography */
-  --font-hand: 'Gaegu', 'Patrick Hand', cursive, sans-serif;
-  --font-display: 'Patrick Hand', 'Gaegu', cursive, sans-serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Patrick Hand', cursive, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Paper Shadows (Crisp Ink Offset) */
@@ -42,104 +34,139 @@ html, body {
   min-height: 100vh;
   background-color: var(--bg-paper);
   color: var(--ink-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   position: relative;
 }
 
-/* Subtle Notebook Paper Texture (Extremely quiet micro-grid/dots) */
+/* Notebook paper texture: extremely faint micro-noise/dots */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: 
-    radial-gradient(#171717 0.65px, transparent 0.65px);
-  background-size: 24px 24px;
-  opacity: 0.035;
+  background-image: radial-gradient(var(--ink-primary) 0.5px, transparent 0.5px);
+  background-size: 20px 20px;
+  opacity: 0.025;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Handwritten Headings & Accents */
-.font-hand {
-  font-family: var(--font-hand);
+/* Faint notebook vertical margin rule on desktop (barely visible) */
+@media (min-width: 860px) {
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: clamp(32px, 8vw, 80px);
+    width: 1px;
+    background-color: var(--bg-paper-muted);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
+/* Display Font (Chunky handwritten / felt marker) */
 .font-display {
   font-family: var(--font-display);
 }
 
-/* Marker Highlighter Effect */
+/* Mono Body Font */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Yellow Highlighter Marker Accent */
 .highlighter {
   background-color: var(--accent-yellow);
-  padding: 0.1em 0.35em;
+  color: var(--ink-primary);
+  padding: 0.08em 0.35em;
   border-radius: 2px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
   display: inline;
 }
 
-/* Paper Cutout / Sketch Container */
-.sketch-box {
-  background-color: var(--bg-paper);
-  border: 1.5px solid var(--ink-primary);
-  box-shadow: var(--shadow-sketch);
+/* Subtle Notebook Underline */
+.ink-underline {
+  border-bottom: 2px solid var(--ink-primary);
+  padding-bottom: 2px;
 }
 
-.sketch-button {
+/* Physical Fight Button */
+.fight-button {
   background-color: var(--accent-yellow);
   color: var(--ink-primary);
-  border: 1.5px solid var(--ink-primary);
+  border: 2px solid var(--ink-primary);
   box-shadow: var(--shadow-sketch);
-  font-family: var(--font-hand);
+  font-family: var(--font-display);
+  font-size: 1.45rem;
   font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0 24px;
+  height: 48px;
+  border-radius: 2px;
   cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  transform: rotate(-1deg);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sketch-button:hover:not(:disabled) {
-  transform: translate(-1px, -1px);
+.fight-button:hover:not(:disabled) {
+  transform: translate(-1px, -2px) rotate(0deg);
   box-shadow: var(--shadow-sketch-lg);
+  background-color: #F7D35E;
 }
 
-.sketch-button:active:not(:disabled) {
-  transform: translate(2px, 2px);
+.fight-button:active:not(:disabled) {
+  transform: translate(2px, 2px) rotate(0deg);
   box-shadow: none;
 }
 
-.sketch-button:disabled {
-  opacity: 0.5;
+.fight-button:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+  transform: rotate(0deg);
+  box-shadow: none;
 }
 
-/* Handwritten Underline */
-.scribble-underline {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-  text-decoration-color: var(--accent-yellow);
+/* Notebook Input */
+.notebook-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background-color: var(--bg-paper);
+  border: 2px solid var(--ink-primary);
+  border-radius: 2px;
+  box-shadow: var(--shadow-sketch-sm);
+  color: var(--ink-primary);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  outline: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Subtle animations for game feel */
-@keyframes sketchBob {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-4px) rotate(-0.5deg); }
+.notebook-input:focus {
+  background-color: #FFFDF8;
+  box-shadow: var(--shadow-sketch);
 }
 
-@keyframes scribblePulse {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
+.notebook-input::placeholder {
+  color: var(--ink-secondary);
+  opacity: 0.75;
+  font-family: var(--font-mono);
 }
 
-.animate-sketch-bob {
-  animation: sketchBob 3s ease-in-out infinite;
-}
-
-.animate-scribble-pulse {
-  animation: scribblePulse 1.5s ease-in-out infinite;
+.notebook-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--bg-paper-muted);
 }
 
 /* Pixel Art Rendering */
@@ -148,20 +175,101 @@ body::before {
   image-rendering: crisp-edges;
 }
 
-/* Clean minimal scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+/* Subtle Idle Floating Animation */
+@keyframes idleSway {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(-0.5deg);
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-paper);
+.animate-idle {
+  animation: idleSway 3.2s ease-in-out infinite;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--bg-paper-border);
-  border-radius: 3px;
+/* Physical Clash Animations */
+@keyframes clashLeft {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(28px) rotate(4deg);
+  }
+  100% {
+    transform: translateX(12px) rotate(1deg);
+  }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-faint);
+@keyframes clashRight {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-28px) rotate(-4deg);
+  }
+  100% {
+    transform: translateX(-12px) rotate(-1deg);
+  }
+}
+
+.animate-clash-left {
+  animation: clashLeft 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+.animate-clash-right {
+  animation: clashRight 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+/* Impact vibration */
+@keyframes impactShake {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.04) rotate(1deg); }
+  50% { transform: scale(0.98) rotate(-1deg); }
+  75% { transform: scale(1.02); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.animate-impact {
+  animation: impactShake 0.4s ease-out;
+}
+
+/* Pop In Result Animation */
+@keyframes sketchPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-sketch-pop {
+  animation: sketchPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Thinking Pulse */
+@keyframes thinkingPulse {
+  0%, 100% {
+    opacity: 0.75;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.animate-thinking {
+  animation: thinkingPulse 1.4s ease-in-out infinite;
+}
+
+/* Edge doodles hide on mobile */
+@media (max-width: 860px) {
+  .desktop-doodle {
+    display: none !important;
+  }
 }

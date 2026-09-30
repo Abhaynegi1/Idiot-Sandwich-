@@ -1,58 +1,91 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { GameEntity, AdjudicationVerdict, TurnHistoryRecord } from "@/types/game";
+import { GameEntity, AdjudicationVerdict } from "@/types/game";
 import { normalizeEntity, adjudicateDuel } from "@/lib/engine/mock-adjudicator";
+
+function getSandwichImage(entity: GameEntity): string | null {
+  if (entity.imageUrl) return entity.imageUrl;
+  const text = `${entity.rawInput || ""} ${entity.canonicalName || ""}`.toLowerCase();
+  if (text.includes("onion")) return "/sandwiches/onion.jpg";
+  if (
+    text.includes("nuke") ||
+    text.includes("nuclear") ||
+    text.includes("bomb") ||
+    text.includes("atomic") ||
+    text.includes("warhead")
+  ) {
+    return "/sandwiches/nuclear.jpg";
+  }
+  if (
+    text.includes("car") ||
+    text.includes("vehicle") ||
+    text.includes("truck") ||
+    text.includes("sedan") ||
+    text.includes("automobile")
+  ) {
+    return "/sandwiches/car.jpg";
+  }
+  if (
+    text.includes("water") ||
+    text.includes("balloon") ||
+    text.includes("aqua") ||
+    text.includes("splash")
+  ) {
+    return "/sandwiches/water_balloon.jpg";
+  }
+  return null;
+}
 
 const STARTER_CHAMPION: GameEntity = {
   id: "starter-onion",
   rawInput: "onion",
   canonicalName: "THE HUMBLE ONION SANDWICH",
   category: "Mundane",
-  power: "4",
+  power: "04",
   scaleTier: 6,
   emoji: "🧅",
-  pixelColor: "#9333ea",
-  sandwichDescription: "Raw red onion slices clamped between toasted sourdough. Brings tears.",
+  pixelColor: "#F4EDE0",
+  sandwichDescription: "Raw red onion slices clamped between toasted sourdough.",
   defensesWon: 0,
+  imageUrl: "/sandwiches/onion.jpg",
 };
 
 const LOADING_NOTES = [
-  "calculating something stupid...",
-  "asking the universe...",
-  "folding the bread...",
-  "checking the laws of physics...",
-  "measuring the calories...",
+  "thinking...",
   "consulting the sandwich council...",
-  "testing crust crunchiness...",
+  "measuring the calories...",
+  "checking the laws of physics...",
+  "folding the bread...",
+  "asking the universe...",
 ];
 
 export default function Home() {
   const [champion, setChampion] = useState<GameEntity>(STARTER_CHAMPION);
+  const [roundNumber, setRoundNumber] = useState<number>(1);
   const [inputValue, setInputValue] = useState("");
   const [loadingStep, setLoadingStep] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [activeDuel, setActiveDuel] = useState<{
+
+  // Active duel state: "clash" (quick physical impact) -> "result"
+  const [duelState, setDuelState] = useState<{
     challenger: GameEntity;
     verdict: AdjudicationVerdict;
-    phase: "clash" | "verdict";
-    adjudicatorSource?: "gemini" | "deterministic-fallback";
+    phase: "clash" | "result";
   } | null>(null);
-  const [history, setHistory] = useState<TurnHistoryRecord[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!loadingStep && !activeDuel) {
+    if (!loadingStep && (!duelState || duelState.phase === "result")) {
       inputRef.current?.focus();
     }
-  }, [loadingStep, activeDuel]);
+  }, [loadingStep, duelState]);
 
   const handleFight = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const query = inputValue.trim();
-    if (!query || loadingStep || activeDuel) return;
+    if (!query || loadingStep || (duelState && duelState.phase === "clash")) return;
 
     setErrorMessage(null);
     let noteIndex = Math.floor(Math.random() * LOADING_NOTES.length);
@@ -61,12 +94,11 @@ export default function Home() {
     const intervalId = setInterval(() => {
       noteIndex = (noteIndex + 1) % LOADING_NOTES.length;
       setLoadingStep(LOADING_NOTES[noteIndex]);
-    }, 1200);
+    }, 1100);
 
     try {
       let challenger: GameEntity;
       let verdict: AdjudicationVerdict;
-      let adjudicatorSource: "gemini" | "deterministic-fallback" = "gemini";
 
       try {
         const res = await fetch("/api/challenge", {
@@ -95,8 +127,10 @@ export default function Home() {
           return;
         }
 
-        challenger = data.challenger;
-        adjudicatorSource = data.adjudicatorSource || "gemini";
+        challenger = {
+          ...data.challenger,
+          imageUrl: getSandwichImage(data.challenger) || undefined,
+        };
         verdict = {
           winner: data.winner,
           confidence: data.evaluation.confidence,
@@ -105,40 +139,34 @@ export default function Home() {
           dominantFactor: data.evaluation.dominantFactor,
         };
       } catch {
-        // Deterministic fallback if API endpoint is unreachable
+        // Deterministic fallback if API fails
         challenger = normalizeEntity(query);
+        challenger.imageUrl = getSandwichImage(challenger) || undefined;
         verdict = adjudicateDuel(champion, challenger);
-        adjudicatorSource = "deterministic-fallback";
       }
 
       clearInterval(intervalId);
       setLoadingStep(null);
-      setActiveDuel({
+
+      // 1. Enter clash phase: Challenger appears, they move toward each other
+      setDuelState({
         challenger,
         verdict,
         phase: "clash",
-        adjudicatorSource,
       });
 
-      // Quick standoff pause (800ms) before verdict reveal
+      // 2. Physical impact resolution after ~750ms
       setTimeout(() => {
-        setActiveDuel((prev) => (prev ? { ...prev, phase: "verdict" } : null));
-
-        const turnRecord: TurnHistoryRecord = {
-          turnIndex: history.length + 1,
-          championName: champion.canonicalName,
-          challengerName: challenger.canonicalName,
-          winner: verdict.winner,
-          headline: verdict.shortHeadline,
-          reason: verdict.humorousReason,
-          timestamp: Date.now(),
-        };
-
-        setHistory((prev) => [turnRecord, ...prev]);
+        setDuelState({
+          challenger,
+          verdict,
+          phase: "result",
+        });
 
         if (verdict.winner === "challenger") {
           setChampion({
             ...challenger,
+            power: formatPower(challenger.power),
             defensesWon: 0,
           });
         } else {
@@ -148,19 +176,17 @@ export default function Home() {
           }));
         }
 
+        setRoundNumber((r) => r + 1);
         setInputValue("");
       }, 750);
     } catch {
       clearInterval(intervalId);
       setLoadingStep(null);
-      setErrorMessage("Something went wrong in the sandwich arena. Please try again.");
+      setErrorMessage("Something went wrong in the arena. Try again.");
     }
   };
 
-  const dismissDuel = () => {
-    setActiveDuel(null);
-    inputRef.current?.focus();
-  };
+  const isLocked = Boolean(loadingStep || (duelState && duelState.phase === "clash"));
 
   return (
     <div
@@ -169,696 +195,718 @@ export default function Home() {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        padding: "clamp(1.5rem, 4vw, 3rem) clamp(1.2rem, 5vw, 4rem)",
-        maxWidth: "960px",
+        alignItems: "center",
+        padding: "clamp(1.5rem, 3.5vh, 2.5rem) 1.5rem",
+        maxWidth: "840px",
         margin: "0 auto",
         position: "relative",
       }}
     >
-      {/* ================= HEADER (Minimal, Top-Left) ================= */}
-      <header
+      {/* ================= EDGE DOODLES (Restrained: 3 Desktop Doodles) ================= */}
+      
+      {/* Doodle 1: Tiny UFO in top-right margin */}
+      <aside
+        aria-hidden="true"
+        className="desktop-doodle"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          width: "100%",
+          position: "fixed",
+          top: "clamp(24px, 5vh, 50px)",
+          right: "clamp(24px, 5vw, 60px)",
+          pointerEvents: "none",
+          opacity: 0.75,
+          transform: "rotate(6deg)",
         }}
       >
-        <div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              marginBottom: "-2px",
-            }}
-          >
-            {/* Hand-Drawn Crown SVG */}
-            <svg
-              width="18"
-              height="14"
-              viewBox="0 0 24 18"
-              fill="none"
-              stroke="#171717"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ transform: "rotate(-6deg)" }}
-            >
-              <path d="M2 16L4 5L9 11L14 3L19 11L21 5L22 16H2Z" fill="#F2C94C" />
-            </svg>
-            <span
-              className="font-hand"
-              style={{
-                fontSize: "0.95rem",
-                color: "var(--ink-pencil)",
-                letterSpacing: "0.02em",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "7px",
-                  height: "7px",
-                  borderRadius: "50%",
-                  backgroundColor: "var(--ink-green)",
-                }}
-              />
-              phase 0.2 • live ai
-            </span>
-          </div>
+        <svg width="44" height="38" viewBox="0 0 44 38" fill="none">
+          <polygon points="17,16 5,36 39,36 27,16" fill="#F2C94C" opacity="0.3" />
+          <path d="M16 12 C16 7, 28 7, 28 12" stroke="#171717" strokeWidth="1.75" strokeLinecap="round" />
+          <ellipse cx="22" cy="13" rx="14" ry="4.5" stroke="#171717" strokeWidth="1.75" fill="#F7F4EA" />
+          <circle cx="16" cy="13.5" r="1" fill="#171717" />
+          <circle cx="22" cy="13.8" r="1" fill="#171717" />
+          <circle cx="28" cy="13.5" r="1" fill="#171717" />
+        </svg>
+      </aside>
 
-          <h1
-            className="font-display"
-            style={{
-              fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
-              lineHeight: 0.95,
-              fontWeight: 900,
-              letterSpacing: "-0.01em",
-              color: "var(--ink-primary)",
-            }}
-          >
-            IDIOT<br />SANDWICH
-          </h1>
+      {/* Doodle 2: Tiny sketched cat + "bro..." in bottom-left margin */}
+      <aside
+        aria-hidden="true"
+        className="desktop-doodle"
+        style={{
+          position: "fixed",
+          bottom: "clamp(24px, 5vh, 48px)",
+          left: "clamp(24px, 5vw, 60px)",
+          pointerEvents: "none",
+          opacity: 0.7,
+        }}
+      >
+        <svg width="48" height="42" viewBox="0 0 48 42" fill="none">
+          <path
+            d="M8 32 C8 24, 14 18, 22 18 C30 18, 36 24, 36 32"
+            stroke="#171717"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+          />
+          <path d="M12 20 L10 11 L18 17" stroke="#171717" strokeWidth="1.75" strokeLinejoin="round" />
+          <path d="M26 17 L34 11 L32 20" stroke="#171717" strokeWidth="1.75" strokeLinejoin="round" />
+          <circle cx="17" cy="24" r="1.2" fill="#171717" />
+          <circle cx="27" cy="24" r="1.2" fill="#171717" />
+          <path d="M22 26 L22 28 M20 28 C21 29, 23 29, 24 28" stroke="#171717" strokeWidth="1.2" strokeLinecap="round" />
+          <path d="M9 25 L3 24 M9 27 L4 28 M35 25 L41 24 M35 27 L40 28" stroke="#171717" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+        <div
+          className="font-display"
+          style={{
+            fontSize: "0.85rem",
+            color: "var(--ink-secondary)",
+            marginLeft: "8px",
+            transform: "rotate(-4deg)",
+          }}
+        >
+          bro...
+        </div>
+      </aside>
 
-          <div
-            className="font-hand"
-            style={{
-              fontSize: "1.05rem",
-              color: "var(--ink-pencil)",
-              marginTop: "4px",
-            }}
+      {/* Doodle 3: Tiny scribbled star in bottom-right margin */}
+      <aside
+        aria-hidden="true"
+        className="desktop-doodle"
+        style={{
+          position: "fixed",
+          bottom: "clamp(30px, 6vh, 60px)",
+          right: "clamp(24px, 5vw, 60px)",
+          pointerEvents: "none",
+          opacity: 0.6,
+          transform: "rotate(12deg)",
+        }}
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 2 L14.5 8.5 L21 9.5 L16 14 L17.5 21 L12 17.5 L6.5 21 L8 14 L3 9.5 L9.5 8.5 Z"
+            stroke="#171717"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
+      </aside>
+
+      {/* ================= 1. TITLE / LOGO ================= */}
+      <header
+        style={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          marginBottom: "clamp(0.75rem, 2vh, 1.5rem)",
+        }}
+      >
+        {/* Tiny Crown above title */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            marginBottom: "-4px",
+            marginLeft: "2px",
+          }}
+        >
+          <svg
+            width="20"
+            height="15"
+            viewBox="0 0 24 18"
+            fill="none"
+            stroke="#171717"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ transform: "rotate(-5deg)" }}
           >
-            type anything.
-          </div>
+            <path d="M2 16L4 5L9 11L14 3L19 11L21 5L22 16H2Z" fill="#F2C94C" />
+          </svg>
         </div>
 
-        {/* Defense Streak Counter */}
-        {champion.defensesWon > 0 && (
-          <div
-            className="font-hand"
-            style={{
-              fontSize: "1.1rem",
-              color: "var(--ink-pencil)",
-              textAlign: "right",
-              transform: "rotate(1.5deg)",
-            }}
-          >
-            <span className="highlighter" style={{ fontWeight: 700 }}>
-              {champion.defensesWon} {champion.defensesWon === 1 ? "defense" : "defenses"} won
-            </span>
-          </div>
-        )}
+        <h1
+          className="font-display"
+          style={{
+            fontSize: "clamp(2.3rem, 5vw, 3.2rem)",
+            lineHeight: 0.9,
+            fontWeight: 900,
+            letterSpacing: "-0.01em",
+            color: "var(--ink-primary)",
+            margin: 0,
+            userSelect: "none",
+          }}
+        >
+          IDIOT<br />SANDWICH
+        </h1>
+
+        <div
+          className="font-display"
+          style={{
+            fontSize: "1.15rem",
+            color: "var(--ink-secondary)",
+            marginTop: "3px",
+            letterSpacing: "0.02em",
+          }}
+        >
+          type anything.
+        </div>
       </header>
 
-      {/* ================= MAIN ARENA ================= */}
+      {/* ================= 2. MAIN GAME AREA (55–70% Viewport) ================= */}
       <main
         style={{
+          width: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          margin: "clamp(2rem, 4vh, 3.5rem) 0",
-          position: "relative",
-          width: "100%",
+          flex: 1,
+          padding: "0.25rem 0",
         }}
       >
-        {/* CURRENT CHAMPION Label */}
+        {/* ROUND 01 (Clean mono) */}
         <div
-          className="font-hand"
+          className="font-mono"
           style={{
-            fontSize: "clamp(1rem, 2vw, 1.25rem)",
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            color: "var(--ink-pencil)",
+            fontSize: "0.85rem",
+            letterSpacing: "0.18em",
+            color: "var(--ink-secondary)",
+            marginBottom: "0.25rem",
             textTransform: "uppercase",
-            marginBottom: "0.8rem",
-            display: "flex",
+            fontWeight: 500,
+          }}
+        >
+          ROUND {roundNumber.toString().padStart(2, "0")}
+        </div>
+
+        {/* — CURRENT CHAMPION — (Handwritten with subtle yellow highlight) */}
+        <div
+          className="font-display"
+          style={{
+            fontSize: "1.05rem",
+            letterSpacing: "0.08em",
+            color: "var(--ink-primary)",
+            textTransform: "uppercase",
+            marginBottom: "0.85rem",
+            display: "inline-flex",
             alignItems: "center",
-            gap: "0.5rem",
+            gap: "6px",
           }}
         >
           <span>—</span>
-          <span>CURRENT CHAMPION</span>
+          <span className="highlighter" style={{ fontWeight: 700 }}>
+            CURRENT CHAMPION
+          </span>
           <span>—</span>
         </div>
 
-        {/* CLASH CONFRONTATION / CHAMPION DISPLAY */}
-        {activeDuel && activeDuel.phase === "clash" ? (
+        {/* ================= LARGE ARTWORK / CLASH ARENA ================= */}
+        {duelState && duelState.phase === "clash" ? (
+          /* Clash: Champion and Challenger move toward each other */
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "clamp(1rem, 4vw, 2.5rem)",
-              margin: "1rem 0 1.5rem 0",
+              gap: "clamp(12px, 3vw, 24px)",
+              margin: "0.5rem 0",
+              width: "100%",
             }}
           >
-            {/* Champion in clash */}
-            <div style={{ textAlign: "center" }} className="animate-sketch-bob">
-              <SandwichGraphic emoji={champion.emoji} color={champion.pixelColor} />
-              <div className="font-display" style={{ fontSize: "1.1rem", marginTop: "4px" }}>
+            {/* Clashing Champion */}
+            <div className="animate-clash-left" style={{ textAlign: "center" }}>
+              <SandwichArtwork entity={champion} compact />
+              <div
+                className="font-display"
+                style={{
+                  fontSize: "1.05rem",
+                  marginTop: "4px",
+                  color: "var(--ink-primary)",
+                  maxWidth: "180px",
+                  lineHeight: 1.1,
+                }}
+              >
                 {champion.canonicalName}
               </div>
             </div>
 
-            {/* Versus scribbled lightning */}
+            {/* Inky VS */}
             <div
-              className="font-display"
+              className="font-display animate-impact"
               style={{
-                fontSize: "2rem",
+                fontSize: "clamp(2rem, 4vw, 2.75rem)",
+                fontWeight: 900,
                 color: "var(--ink-primary)",
                 fontStyle: "italic",
-                transform: "rotate(-10deg)",
+                transform: "rotate(-8deg)",
               }}
             >
               VS
             </div>
 
-            {/* Challenger in clash */}
-            <div style={{ textAlign: "center" }} className="animate-sketch-bob">
-              <SandwichGraphic emoji={activeDuel.challenger.emoji} color={activeDuel.challenger.pixelColor} />
-              <div className="font-display" style={{ fontSize: "1.1rem", marginTop: "4px" }}>
-                {activeDuel.challenger.canonicalName}
+            {/* Clashing Challenger */}
+            <div className="animate-clash-right" style={{ textAlign: "center" }}>
+              <SandwichArtwork entity={duelState.challenger} compact />
+              <div
+                className="font-display"
+                style={{
+                  fontSize: "1.05rem",
+                  marginTop: "4px",
+                  color: "var(--ink-primary)",
+                  maxWidth: "180px",
+                  lineHeight: 1.1,
+                }}
+              >
+                {duelState.challenger.canonicalName}
               </div>
             </div>
           </div>
         ) : (
-          /* Normal Champion Single Display */
+          /* Normal Single Large Artwork (Anchors the page) */
           <div
-            className="animate-sketch-bob"
+            className="animate-idle"
             style={{
-              margin: "0 auto 1rem auto",
+              margin: "0 0 0.5rem 0",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            <SandwichGraphic emoji={champion.emoji} color={champion.pixelColor} />
+            <SandwichArtwork entity={champion} />
           </div>
         )}
 
-        {/* OBJECT TITLE (Display Typography) */}
+        {/* ================= OBJECT NAME ================= */}
         <h2
           className="font-display"
           style={{
-            fontSize: "clamp(1.7rem, 4vw, 2.6rem)",
+            fontSize: "clamp(1.9rem, 4.5vw, 2.85rem)",
             fontWeight: 800,
-            lineHeight: 1.1,
+            lineHeight: 1.05,
             letterSpacing: "0.01em",
             color: "var(--ink-primary)",
-            marginBottom: "0.35rem",
+            margin: "0 0 0.25rem 0",
             textTransform: "uppercase",
+            maxWidth: "680px",
           }}
         >
           {champion.canonicalName}
         </h2>
 
-        {/* Metadata */}
+        {/* POWER: XX (Clean Mono, Small) */}
         <div
-          className="font-hand"
+          className="font-mono"
           style={{
-            fontSize: "1.1rem",
-            color: "var(--ink-pencil)",
-            marginBottom: "1.75rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.75rem",
-            flexWrap: "wrap",
+            fontSize: "0.95rem",
+            color: "var(--ink-secondary)",
+            letterSpacing: "0.1em",
+            marginBottom: "0.6rem",
           }}
         >
-          <span>
-            power: <strong style={{ color: "var(--ink-primary)" }}>{champion.power}</strong>
-          </span>
-          <span>•</span>
-          <span>tier: {champion.category}</span>
-          <span>•</span>
-          <span style={{ fontStyle: "italic", fontSize: "0.95rem" }}>
-            {champion.sandwichDescription}
-          </span>
+          POWER: <span style={{ color: "var(--ink-primary)", fontWeight: 700 }}>{champion.power}</span>
         </div>
 
-        {/* ================= CLASH VERDICT OVERLAY ================= */}
-        {activeDuel && activeDuel.phase === "verdict" && (
+        {/* ================= RESULT STATE (Inline in Game Area) ================= */}
+        {duelState && duelState.phase === "result" && (
           <div
-            className="animate-slam"
+            className="animate-sketch-pop"
             style={{
-              marginBottom: "1.75rem",
-              maxWidth: "520px",
-              width: "100%",
-              padding: "0.85rem 1.25rem",
-              background:
-                activeDuel.verdict.winner === "challenger"
-                  ? "var(--accent-yellow-light)"
-                  : "var(--bg-paper-subtle)",
-              border: "1.5px solid var(--ink-primary)",
-              boxShadow: "var(--shadow-sketch)",
-              borderRadius: "2px",
-              textAlign: "left",
-              position: "relative",
+              marginBottom: "0.75rem",
+              padding: "0.35rem 0.75rem",
+              maxWidth: "540px",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "4px",
-              }}
-            >
-              <div
-                className="font-display"
-                style={{
-                  fontSize: "1.35rem",
-                  fontWeight: 800,
-                  color:
-                    activeDuel.verdict.winner === "challenger"
-                      ? "var(--ink-primary)"
-                      : "var(--ink-red)",
-                }}
-              >
-                {activeDuel.verdict.winner === "challenger"
-                  ? "👑 NEW CHAMPION CROWNED!"
-                  : `❌ CHAMPION DEFENDED: ${activeDuel.verdict.shortHeadline}`}
+            {duelState.verdict.winner === "challenger" ? (
+              <div>
+                <span
+                  className="highlighter font-display"
+                  style={{
+                    fontSize: "1.35rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  NEW CHAMPION
+                </span>
+                <p
+                  className="font-display"
+                  style={{
+                    fontSize: "1.05rem",
+                    color: "var(--ink-secondary)",
+                    marginTop: "4px",
+                    fontStyle: "italic",
+                  }}
+                >
+                  &quot;{duelState.verdict.humorousReason || "yeah... that was inevitable."}&quot;
+                </p>
               </div>
-
-              <button
-                onClick={dismissDuel}
-                aria-label="Dismiss verdict"
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "1.2rem",
-                  cursor: "pointer",
-                  color: "var(--ink-pencil)",
-                  fontFamily: "var(--font-hand)",
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <p
-              className="font-hand"
-              style={{
-                fontSize: "1.15rem",
-                color: "var(--ink-primary)",
-                lineHeight: 1.3,
-                marginBottom: "8px",
-              }}
-            >
-              &quot;{activeDuel.verdict.humorousReason}&quot;
-            </p>
-
-            <div
-              className="font-hand"
-              style={{
-                fontSize: "0.9rem",
-                color: "var(--ink-pencil)",
-                display: "flex",
-                gap: "12px",
-                flexWrap: "wrap",
-                alignItems: "center",
-              }}
-            >
-              <span>factor: {activeDuel.verdict.dominantFactor}</span>
-              <span>•</span>
-              <span>confidence: {Math.round(activeDuel.verdict.confidence * 100)}%</span>
-              <span>•</span>
-              <span style={{ color: activeDuel.adjudicatorSource === "gemini" ? "var(--ink-green)" : "var(--ink-pencil)" }}>
-                {activeDuel.adjudicatorSource === "gemini" ? "⚡ Gemini 1.5 Flash" : "📏 Fallback Rules"}
-              </span>
-            </div>
+            ) : (
+              <div>
+                <span
+                  className="font-display"
+                  style={{
+                    fontSize: "1.4rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.04em",
+                    color: "var(--ink-primary)",
+                  }}
+                >
+                  NOPE.
+                </span>
+                <p
+                  className="font-display"
+                  style={{
+                    fontSize: "1.05rem",
+                    color: "var(--ink-secondary)",
+                    marginTop: "4px",
+                    fontStyle: "italic",
+                  }}
+                >
+                  &quot;nice try.&quot; — {duelState.verdict.shortHeadline}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* LOADING NOTE (Handwritten message) */}
+        {/* ================= WHAT CAN DEFEAT IT? ================= */}
+        <div
+          className="font-display"
+          style={{
+            fontSize: "clamp(1.35rem, 3vw, 1.7rem)",
+            fontWeight: 700,
+            letterSpacing: "0.03em",
+            color: "var(--ink-primary)",
+            margin: "0.5rem 0 0.5rem 0",
+          }}
+        >
+          WHAT CAN DEFEAT IT?
+        </div>
+
+        {/* INPUT + FIGHT FORM */}
+        <form
+          onSubmit={handleFight}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            width: "100%",
+            maxWidth: "480px",
+          }}
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            disabled={isLocked}
+            placeholder="type something..."
+            maxLength={100}
+            className="notebook-input"
+            aria-label="What can defeat the current sandwich champion?"
+          />
+
+          <button
+            type="submit"
+            disabled={isLocked || !inputValue.trim()}
+            className="fight-button"
+          >
+            FIGHT
+          </button>
+        </form>
+
+        {/* THINKING ANIMATION / ROTATING NOTE */}
         {loadingStep && (
           <div
-            className="font-hand animate-scribble-pulse"
+            className="font-display animate-thinking"
             style={{
-              fontSize: "1.3rem",
-              color: "var(--ink-primary)",
-              marginBottom: "1.5rem",
-              display: "inline-block",
+              marginTop: "0.75rem",
+              fontSize: "1.15rem",
             }}
           >
             <span className="highlighter">{loadingStep}</span>
           </div>
         )}
 
-        {/* ================= INPUT EXPERIENCE ================= */}
-        <div style={{ width: "100%", maxWidth: "460px" }}>
+        {/* Error Feedback */}
+        {errorMessage && (
           <div
-            className="font-display"
+            className="font-display animate-sketch-pop"
             style={{
-              fontSize: "1.45rem",
-              fontWeight: 700,
+              marginTop: "0.75rem",
               color: "var(--ink-primary)",
-              marginBottom: "0.6rem",
-              textAlign: "center",
+              fontSize: "1.05rem",
+              border: "1.5px dashed var(--ink-secondary)",
+              padding: "4px 12px",
+              borderRadius: "2px",
+              backgroundColor: "var(--bg-paper-muted)",
             }}
           >
-            WHAT CAN DEFEAT IT?
+            {errorMessage}
           </div>
+        )}
 
-          <form
-            onSubmit={handleFight}
-            style={{
-              display: "flex",
-              alignItems: "stretch",
-              gap: "8px",
-              width: "100%",
-            }}
-          >
-            <div style={{ flex: 1, position: "relative" }}>
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                disabled={Boolean(loadingStep || (activeDuel && activeDuel.phase === "clash"))}
-                placeholder="type something..."
-                maxLength={100}
-                style={{
-                  width: "100%",
-                  height: "46px",
-                  padding: "0 14px",
-                  backgroundColor: "var(--bg-paper)",
-                  border: "1.5px solid var(--ink-primary)",
-                  borderRadius: "2px",
-                  boxShadow: "var(--shadow-sketch-sm)",
-                  color: "var(--ink-primary)",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "1rem",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.backgroundColor = "#FFFDF5";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.backgroundColor = "var(--bg-paper)";
-                }}
-              />
-            </div>
-
-            {/* FIGHT BUTTON */}
-            <button
-              type="submit"
-              disabled={Boolean(loadingStep || !inputValue.trim() || (activeDuel && activeDuel.phase === "clash"))}
-              className="sketch-button"
-              style={{
-                height: "46px",
-                padding: "0 22px",
-                fontSize: "1.35rem",
-                borderRadius: "2px",
-                letterSpacing: "0.05em",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              FIGHT
-            </button>
-          </form>
-
-          {/* Error Message Display */}
-          {errorMessage && (
-            <div
-              className="font-hand animate-slam"
-              style={{
-                marginTop: "10px",
-                padding: "6px 12px",
-                color: "var(--ink-red)",
-                fontSize: "1.05rem",
-                backgroundColor: "#FEF2F2",
-                border: "1.5px dashed var(--ink-red)",
-                borderRadius: "2px",
-                textAlign: "center",
-                boxShadow: "var(--shadow-sketch-sm)",
-              }}
-            >
-              ⚠️ {errorMessage}
-            </div>
-          )}
-
-          {/* Quick inspiration chips */}
+        {/* Minimal inspiration annotations (dry, unobtrusive) */}
+        {!loadingStep && (!duelState || duelState.phase === "result") && (
           <div
-            className="font-hand"
+            className="font-mono"
             style={{
-              fontSize: "0.95rem",
-              color: "var(--ink-faint)",
-              marginTop: "8px",
+              fontSize: "0.8rem",
+              color: "var(--ink-secondary)",
+              marginTop: "0.75rem",
               display: "flex",
-              justifyContent: "center",
-              gap: "10px",
+              gap: "8px",
+              alignItems: "center",
               flexWrap: "wrap",
+              justifyContent: "center",
+              opacity: 0.7,
             }}
           >
             <span>try:</span>
-            <ChipButton label="car" onClick={() => setInputValue("a car")} />
+            <ChipText text="a car" onClick={() => setInputValue("a car")} />
             <span>•</span>
-            <ChipButton label="nuclear bomb" onClick={() => setInputValue("nuclear bomb")} />
+            <ChipText text="nuclear bomb" onClick={() => setInputValue("nuclear bomb")} />
             <span>•</span>
-            <ChipButton label="water balloon" onClick={() => setInputValue("water balloon")} />
+            <ChipText text="water balloon" onClick={() => setInputValue("water balloon")} />
             <span>•</span>
-            <ChipButton label="black hole" onClick={() => setInputValue("black hole")} />
-            <span>•</span>
-            <ChipButton label="tuesday" onClick={() => setInputValue("tuesday")} />
+            <ChipText text="tuesday" onClick={() => setInputValue("tuesday")} />
           </div>
-        </div>
+        )}
       </main>
 
-      {/* ================= FOOTER / HISTORY DRAWER ================= */}
+      {/* ================= FOOTER (Clean & Empty) ================= */}
       <footer
         style={{
           width: "100%",
+          paddingTop: "0.75rem",
           display: "flex",
-          flexDirection: "column",
-          gap: "0.75rem",
-          paddingTop: "1.5rem",
-          borderTop: "1px dashed var(--bg-paper-border)",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <div
+        <span
+          className="font-display"
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "100%",
+            fontSize: "0.95rem",
+            color: "var(--ink-secondary)",
+            opacity: 0.6,
           }}
         >
-          <div
-            className="font-hand"
-            style={{
-              fontSize: "0.95rem",
-              color: "var(--ink-pencil)",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <span>✏️</span>
-            <span>drew this in the back of my notebook</span>
-          </div>
-
-          {/* History Toggle Button */}
-          {history.length > 0 && (
-            <button
-              onClick={() => setShowHistory((prev) => !prev)}
-              className="font-hand"
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--ink-primary)",
-                fontSize: "1rem",
-                textDecoration: "underline",
-                cursor: "pointer",
-                padding: "2px 6px",
-              }}
-            >
-              {showHistory ? "✕ hide history" : `📜 battle history (${history.length})`}
-            </button>
-          )}
-
-          <div
-            className="font-hand"
-            style={{
-              fontSize: "0.95rem",
-              color: "var(--ink-faint)",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <span>anything can be a sandwich</span>
-            <span>★</span>
-          </div>
-        </div>
-
-        {/* Collapsible History Drawer */}
-        {showHistory && (
-          <div
-            className="animate-slam"
-            style={{
-              marginTop: "0.5rem",
-              padding: "1rem",
-              backgroundColor: "var(--bg-paper-subtle)",
-              border: "1.5px solid var(--ink-primary)",
-              boxShadow: "var(--shadow-sketch-sm)",
-              borderRadius: "2px",
-              maxHeight: "220px",
-              overflowY: "auto",
-              textAlign: "left",
-            }}
-          >
-            <div
-              className="font-display"
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 800,
-                marginBottom: "0.5rem",
-                color: "var(--ink-primary)",
-              }}
-            >
-              NOTEBOOK BATTLE LOG
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-              {history.map((record) => (
-                <div
-                  key={record.turnIndex}
-                  style={{
-                    fontSize: "0.9rem",
-                    borderBottom: "1px dashed var(--bg-paper-border)",
-                    paddingBottom: "4px",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span className="font-display" style={{ fontWeight: 700 }}>
-                      Turn #{record.turnIndex}: {record.challengerName} vs {record.championName}
-                    </span>
-                    <span
-                      className="font-hand"
-                      style={{
-                        color: record.winner === "challenger" ? "var(--ink-green)" : "var(--ink-red)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {record.winner === "challenger" ? "CHALLENGER WON" : "CHAMPION DEFENDED"}
-                    </span>
-                  </div>
-                  <div
-                    className="font-hand"
-                    style={{ color: "var(--ink-pencil)", fontStyle: "italic" }}
-                  >
-                    &quot;{record.reason}&quot;
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          drawn in the back of a notebook
+        </span>
       </footer>
     </div>
   );
 }
 
 /**
- * Reusable Sandwich Artwork Graphic (direct on paper, no glossy card)
+ * Large, expressive Sandwich Artwork
+ * Displays high-quality graphical generated sandwich art on the notebook page,
+ * with seamless multiply blending and clean physical presence.
  */
-function SandwichGraphic({ emoji, color }: { emoji: string; color: string }) {
+function SandwichArtwork({
+  entity,
+  compact = false,
+}: {
+  entity: GameEntity;
+  compact?: boolean;
+}) {
+  const imageSrc = getSandwichImage(entity);
+  const width = compact ? "clamp(150px, 20vw, 190px)" : "clamp(260px, 38vw, 330px)";
+
+  if (imageSrc) {
+    return (
+      <div
+        style={{
+          width,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          userSelect: "none",
+        }}
+      >
+        {/* Graphical Generated Sandwich Illustration */}
+        <img
+          src={imageSrc}
+          alt={entity.canonicalName}
+          style={{
+            width: "100%",
+            height: "auto",
+            maxHeight: compact ? "140px" : "240px",
+            aspectRatio: "4 / 3",
+            objectFit: "contain",
+            mixBlendMode: "multiply",
+            display: "block",
+            filter: "contrast(1.04) drop-shadow(0px 3px 6px rgba(23, 23, 23, 0.08))",
+          }}
+        />
+        {/* Subtle Sketched Ground Line */}
+        <svg
+          width={compact ? "120" : "190"}
+          height="8"
+          viewBox="0 0 190 8"
+          fill="none"
+          style={{
+            marginTop: "-4px",
+            opacity: 0.35,
+          }}
+        >
+          <ellipse cx="95" cy="4" rx="80" ry="2.5" stroke="#171717" strokeWidth="1.25" strokeDasharray="3 2" />
+        </svg>
+      </div>
+    );
+  }
+
+  // Dynamic illustrated sandwich for unmapped custom inputs
+  const bunHeight = compact ? "22px" : "clamp(30px, 4vw, 36px)";
+  const fillingHeight = compact ? "55px" : "clamp(80px, 11vw, 100px)";
+  const emojiSize = compact ? "2.6rem" : "clamp(3.8rem, 5.5vw, 4.8rem)";
+
   return (
     <div
       style={{
-        width: "clamp(160px, 28vw, 220px)",
-        height: "clamp(130px, 24vw, 180px)",
+        width,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
+        userSelect: "none",
       }}
     >
-      {/* Top Bread Crust */}
+      {/* Top Bun */}
       <div
         style={{
-          width: "84%",
-          height: "26px",
-          backgroundColor: "#D4A373",
-          border: "2px solid #171717",
-          borderRadius: "14px 14px 4px 4px",
+          width: "90%",
+          height: bunHeight,
+          backgroundColor: "#DFB277",
+          border: "2.5px solid var(--ink-primary)",
+          borderRadius: "20px 20px 5px 5px",
           boxShadow: "var(--shadow-sketch-sm)",
           marginBottom: "-6px",
-          zIndex: 3,
+          zIndex: 4,
           position: "relative",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: "4px",
-            left: "25%",
-            width: "4px",
-            height: "2px",
-            background: "#171717",
-            borderRadius: "1px",
-          }}
-        />
         <div
           style={{
             position: "absolute",
             top: "6px",
-            left: "60%",
-            width: "5px",
-            height: "2px",
-            background: "#171717",
-            borderRadius: "1px",
+            left: "25%",
+            width: "8px",
+            height: "2.5px",
+            backgroundColor: "var(--ink-primary)",
+            borderRadius: "2px",
+            transform: "rotate(-10deg)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: "7px",
+            right: "28%",
+            width: "8px",
+            height: "2.5px",
+            backgroundColor: "var(--ink-primary)",
+            borderRadius: "2px",
+            transform: "rotate(12deg)",
           }}
         />
       </div>
 
-      {/* Entity Filling Core */}
+      {/* Filling Core with Absurd Entity */}
       <div
-        className="pixel-art"
         style={{
-          width: "92%",
-          height: "68px",
-          backgroundColor: color,
-          border: "2px solid #171717",
-          borderRadius: "4px",
+          width: "96%",
+          height: fillingHeight,
+          backgroundColor: entity.pixelColor || "#F4EDE0",
+          border: "2.5px solid var(--ink-primary)",
+          borderRadius: "6px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "clamp(2.4rem, 4.5vw, 3.2rem)",
+          fontSize: emojiSize,
           boxShadow: "var(--shadow-sketch)",
-          zIndex: 2,
+          zIndex: 3,
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {emoji}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-3px",
+            left: "6px",
+            width: "28px",
+            height: "8px",
+            backgroundColor: "#7D9D64",
+            border: "1.5px solid var(--ink-primary)",
+            borderRadius: "4px",
+            transform: "rotate(-6deg)",
+            zIndex: 1,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-4px",
+            right: "12px",
+            width: "20px",
+            height: "10px",
+            backgroundColor: "var(--accent-yellow)",
+            border: "1.5px solid var(--ink-primary)",
+            borderRadius: "2px 2px 5px 5px",
+            transform: "rotate(4deg)",
+            zIndex: 1,
+          }}
+        />
+        <span
+          style={{
+            position: "relative",
+            zIndex: 2,
+            filter: "drop-shadow(2px 2px 0px rgba(0,0,0,0.15))",
+          }}
+        >
+          {entity.emoji}
+        </span>
       </div>
 
-      {/* Bottom Bread Crust */}
+      {/* Bottom Bun */}
       <div
         style={{
-          width: "86%",
-          height: "24px",
-          backgroundColor: "#CCD5AE",
-          border: "2px solid #171717",
-          borderRadius: "4px 4px 12px 12px",
+          width: "92%",
+          height: bunHeight,
+          backgroundColor: "#D0A065",
+          border: "2.5px solid var(--ink-primary)",
+          borderRadius: "4px 4px 18px 18px",
           boxShadow: "var(--shadow-sketch-sm)",
           marginTop: "-6px",
-          zIndex: 1,
+          zIndex: 2,
         }}
       />
+
+      {/* Ground Shadow */}
+      <svg
+        width={compact ? "120" : "190"}
+        height="8"
+        viewBox="0 0 190 8"
+        fill="none"
+        style={{
+          marginTop: "4px",
+          opacity: 0.35,
+        }}
+      >
+        <ellipse cx="95" cy="4" rx="80" ry="2.5" stroke="#171717" strokeWidth="1.25" strokeDasharray="3 2" />
+      </svg>
     </div>
   );
 }
 
-function ChipButton({ label, onClick }: { label: string; onClick: () => void }) {
+function ChipText({ text, onClick }: { text: string; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -866,14 +914,22 @@ function ChipButton({ label, onClick }: { label: string; onClick: () => void }) 
       style={{
         background: "none",
         border: "none",
-        color: "var(--ink-pencil)",
+        color: "var(--ink-secondary)",
         textDecoration: "underline",
+        textUnderlineOffset: "3px",
         cursor: "pointer",
         fontFamily: "inherit",
         fontSize: "inherit",
+        padding: 0,
       }}
     >
-      {label}
+      {text}
     </button>
   );
+}
+
+function formatPower(power: string | number): string {
+  const num = Number(power);
+  if (isNaN(num)) return String(power);
+  return num < 10 && num >= 0 ? `0${num}` : String(num);
 }

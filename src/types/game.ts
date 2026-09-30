@@ -14,6 +14,7 @@ export interface GameEntity {
   pixelColor: string;
   sandwichDescription: string;
   defensesWon: number;
+  imageUrl?: string;
 }
 
 export interface AdjudicationVerdict {
