@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { GameEntity, AdjudicationVerdict, TurnHistoryRecord } from "@/types/game";
 import { normalizeEntity, adjudicateDuel } from "@/lib/engine/mock-adjudicator";
 
@@ -461,6 +462,15 @@ export default function Home() {
             marginTop: "6px",
           }}
         >
+          <Link
+            href="/how-to-play"
+            className="secondary-btn"
+            title="How to play and game rules"
+            style={{ textDecoration: "none" }}
+          >
+            ❓ Rules
+          </Link>
+
           <button
             type="button"
             onClick={handleShare}
