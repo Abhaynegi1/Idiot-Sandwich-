@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { GameEntity, AdjudicationVerdict, TurnHistoryRecord } from "@/types/game";
 import { normalizeEntity, adjudicateDuel } from "@/lib/engine/mock-adjudicator";
 
@@ -401,56 +402,51 @@ export default function Home() {
           flexWrap: "wrap",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-          {/* Tiny Crown above title */}
-          <div
+        {/* Branding: Logo + Title */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <Image
+            src="/icon.svg"
+            alt="Idiot Sandwich Logo"
+            width={62}
+            height={62}
+            unoptimized
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              marginBottom: "-4px",
-              marginLeft: "2px",
-            }}
-          >
-            <svg
-              width="20"
-              height="15"
-              viewBox="0 0 24 18"
-              fill="none"
-              stroke="#171717"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ transform: "rotate(-5deg)" }}
-            >
-              <path d="M2 16L4 5L9 11L14 3L19 11L21 5L22 16H2Z" fill="#F2C94C" />
-            </svg>
-          </div>
-
-          <h1
-            className="font-display"
-            style={{
-              fontSize: "clamp(2.3rem, 5vw, 3.2rem)",
-              lineHeight: 0.9,
-              fontWeight: 900,
-              letterSpacing: "-0.01em",
-              color: "var(--ink-primary)",
-              margin: 0,
+              width: "clamp(48px, 7vw, 62px)",
+              height: "auto",
+              display: "block",
               userSelect: "none",
+              filter: "drop-shadow(2px 2px 0px var(--ink-primary))",
+              transform: "rotate(-3deg)",
             }}
-          >
-            IDIOT<br />SANDWICH
-          </h1>
+          />
 
-          <div
-            className="font-display"
-            style={{
-              fontSize: "1.15rem",
-              color: "var(--ink-secondary)",
-              marginTop: "3px",
-              letterSpacing: "0.02em",
-            }}
-          >
-            type anything.
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <h1
+              className="font-display"
+              style={{
+                fontSize: "clamp(2.1rem, 4.5vw, 2.9rem)",
+                lineHeight: 0.9,
+                fontWeight: 900,
+                letterSpacing: "-0.01em",
+                color: "var(--ink-primary)",
+                margin: 0,
+                userSelect: "none",
+              }}
+            >
+              IDIOT<br />SANDWICH
+            </h1>
+
+            <div
+              className="font-display"
+              style={{
+                fontSize: "1.1rem",
+                color: "var(--ink-secondary)",
+                marginTop: "3px",
+                letterSpacing: "0.02em",
+              }}
+            >
+              type anything.
+            </div>
           </div>
         </div>
 
