@@ -1,6 +1,6 @@
 /**
  * IDIOT SANDWICH — Core Game Type Definitions
- * Aligned with docs/DATA_MODEL.md and docs/AI_SYSTEM.md
+ * Aligned with docs/ARCHITECTURE.md and docs/API.md
  */
 
 export interface GameEntity {

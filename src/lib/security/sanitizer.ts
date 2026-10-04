@@ -1,7 +1,7 @@
 /**
  * IDIOT SANDWICH — Security & Sanitization Layer
  * Implements input bounds, prompt injection defense, and basic content moderation.
- * Aligned with docs/SECURITY.md
+ * Aligned with docs/ARCHITECTURE.md
  */
 
 const MAX_INPUT_LENGTH = 120;
