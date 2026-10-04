@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test src/lib/engine/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs"
+    "test": "tsx --test src/lib/engine/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",
@@ -23,6 +23,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
