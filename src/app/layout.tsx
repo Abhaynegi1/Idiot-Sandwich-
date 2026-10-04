@@ -13,6 +13,15 @@ export const metadata: Metadata = {
   description: "An absurd, AI-assisted competitive object game where anything can be challenged, anything can be a sandwich, and sanity is optional.",
   keywords: ["idiot sandwich", "game", "ai battle", "web game", "absurd"],
   authors: [{ name: "Idiot Sandwich Team" }],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

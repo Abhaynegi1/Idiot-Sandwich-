@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Sketched Under-shadow for crisp depth on any tab background -->
+  <ellipse cx="32" cy="57" rx="22" ry="3" fill="#171717" opacity="0.25" />
+
+  <!-- Crooked Golden Crown on Top -->
+  <g transform="rotate(-7 32 16)">
+    <!-- Crown Body -->
+    <path 
+      d="M19 21 L22 10 L28 16 L34 8 L40 16 L46 10 L49 21 Z" 
+      fill="#F2C94C" 
+      stroke="#171717" 
+      stroke-width="2.5" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+    />
+    <!-- Crown Jewels / Tips -->
+    <circle cx="22" cy="10" r="1.5" fill="#E65100" />
+    <circle cx="34" cy="8" r="1.75" fill="#E65100" />
+    <circle cx="46" cy="10" r="1.5" fill="#E65100" />
+    <circle cx="34" cy="17" r="1.2" fill="#171717" />
+  </g>
+
+  <!-- Sandwich Stack -->
+  <g>
+    <!-- Top Bread Bun -->
+    <path 
+      d="M12 32 C12 25 18 22 32 22 C46 22 52 25 52 32 C52 34 50 35 48 35 L16 35 C14 35 12 34 12 32 Z" 
+      fill="#E5B574" 
+      stroke="#171717" 
+      stroke-width="2.75" 
+      stroke-linejoin="round"
+    />
+    <!-- Top Bun Bread Scoring / Sesame Seeds -->
+    <path d="M22 27 L26 26" stroke="#171717" stroke-width="2" stroke-linecap="round" />
+    <path d="M37 26 L41 28" stroke="#171717" stroke-width="2" stroke-linecap="round" />
+    <path d="M29 29 L33 29" stroke="#171717" stroke-width="1.75" stroke-linecap="round" />
+
+    <!-- Fillings Layer -->
+    <!-- Lettuce / Pickle ruffled tab protruding on left -->
+    <path 
+      d="M10 37 C10 34 14 34 17 35 C20 34 22 36 24 35 L24 39 C21 40 18 39 15 40 C11 40 10 38 10 37 Z" 
+      fill="#6BA353" 
+      stroke="#171717" 
+      stroke-width="2" 
+      stroke-linejoin="round"
+    />
+
+    <!-- Main Filling / Core -->
+    <rect 
+      x="13" 
+      y="35" 
+      width="38" 
+      height="8" 
+      rx="3" 
+      fill="#8D493A" 
+      stroke="#171717" 
+      stroke-width="2.5"
+    />
+
+    <!-- Melted Cheese Corner dripping on right -->
+    <path 
+      d="M38 37 L52 37 L54 41 L47 44 L44 39 Z" 
+      fill="#F2C94C" 
+      stroke="#171717" 
+      stroke-width="2" 
+      stroke-linejoin="round"
+    />
+
+    <!-- Bottom Bread Bun -->
+    <path 
+      d="M13 43 L51 43 C53 43 53 45 52 48 C50 53 44 55 32 55 C20 55 14 53 12 48 C11 45 11 43 13 43 Z" 
+      fill="#D19E5B" 
+      stroke="#171717" 
+      stroke-width="2.75" 
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>
