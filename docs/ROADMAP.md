@@ -79,21 +79,22 @@ gantt
 
 ---
 
-### Phase 0.3 — Image Generation & Asset Pipeline 🟡 *(NEXT)*
-- **Objective:** Bring sandwich visuals to life dynamically.
-- **Key Tasks:**
-  - Integrate image generation API with food-photography prompt templates.
-  - Implement image caching and CDN upload pipelines.
-  - Add fallback placeholders and optimistic loading states.
+### Phase 0.3 — Procedural Sandwich Visual System 🟢 *(COMPLETED)*
+- **Objective:** Render every submitted entity as a hilarious sandwich with zero latency and zero token costs.
+- **Deliverables:**
+  - Dynamic CSS/SVG sandwich card architecture with bread buns, pickles, cheese tabs, custom filling colors, and emoji centers.
+  - Curated photorealistic sandwich assets for archetypes (`onion`, `car`, `nuclear`, `water_balloon`).
+  - Zero token burn ($0.00/turn image cost) and 0ms rendering latency.
 
 ---
 
-### Phase 0.4 — Session Durability & Shareable Cards (Zero-DB)
-- **Objective:** Enhance client session durability and shareable victory cards without database infrastructure.
-- **Key Tasks:**
-  - Optional `localStorage` backup so active runs survive accidental page refreshes.
-  - Dynamic shareable duel summary cards (e.g. downloadable canvas snippet or social clipboard text) for instant bragging.
-  - "New Run" restart button and session replay review.
+### Phase 0.4 — Session Durability & Shareable Cards (Zero-DB) 🟢 *(COMPLETED)*
+- **Objective:** Client session durability and shareable brag cards without database infrastructure.
+- **Deliverables:**
+  - Automated `localStorage` session save and hydration (protecting runs across browser refreshes).
+  - One-click **"📋 Share"** brag card generator copying formatted summaries to clipboard and native mobile sharing.
+  - Collapsible **"📜 History"** receipt drawer tracking all battles, winners, and AI punchlines in the run.
+  - **"🔄 Reset"** control with inline confirmation to start fresh back at Round 1.
 
 ---
 

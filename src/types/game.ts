@@ -28,9 +28,12 @@ export interface AdjudicationVerdict {
 export interface TurnHistoryRecord {
   turnIndex: number;
   championName: string;
+  championEmoji?: string;
   challengerName: string;
+  challengerEmoji?: string;
   winner: "champion" | "challenger";
   headline: string;
   reason: string;
+  dominantFactor?: string;
   timestamp: number;
 }

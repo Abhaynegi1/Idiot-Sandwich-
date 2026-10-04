@@ -1,41 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { GameEntity, AdjudicationVerdict } from "@/types/game";
+import { GameEntity, AdjudicationVerdict, TurnHistoryRecord } from "@/types/game";
 import { normalizeEntity, adjudicateDuel } from "@/lib/engine/mock-adjudicator";
-
-function getSandwichImage(entity: GameEntity): string | null {
-  if (entity.imageUrl) return entity.imageUrl;
-  const text = `${entity.rawInput || ""} ${entity.canonicalName || ""}`.toLowerCase();
-  if (text.includes("onion")) return "/sandwiches/onion.jpg";
-  if (
-    text.includes("nuke") ||
-    text.includes("nuclear") ||
-    text.includes("bomb") ||
-    text.includes("atomic") ||
-    text.includes("warhead")
-  ) {
-    return "/sandwiches/nuclear.jpg";
-  }
-  if (
-    text.includes("car") ||
-    text.includes("vehicle") ||
-    text.includes("truck") ||
-    text.includes("sedan") ||
-    text.includes("automobile")
-  ) {
-    return "/sandwiches/car.jpg";
-  }
-  if (
-    text.includes("water") ||
-    text.includes("balloon") ||
-    text.includes("aqua") ||
-    text.includes("splash")
-  ) {
-    return "/sandwiches/water_balloon.jpg";
-  }
-  return null;
-}
 
 const STARTER_CHAMPION: GameEntity = {
   id: "starter-onion",
@@ -45,10 +12,9 @@ const STARTER_CHAMPION: GameEntity = {
   power: "04",
   scaleTier: 6,
   emoji: "🧅",
-  pixelColor: "#F4EDE0",
+  pixelColor: "#EBD5EE",
   sandwichDescription: "Raw red onion slices clamped between toasted sourdough.",
   defensesWon: 0,
-  imageUrl: "/sandwiches/onion.jpg",
 };
 
 const LOADING_NOTES = [
@@ -60,9 +26,17 @@ const LOADING_NOTES = [
   "asking the universe...",
 ];
 
+const STORAGE_KEY = "idiot_sandwich_session_v1";
+
 export default function Home() {
   const [champion, setChampion] = useState<GameEntity>(STARTER_CHAMPION);
   const [roundNumber, setRoundNumber] = useState<number>(1);
+  const [history, setHistory] = useState<TurnHistoryRecord[]>([]);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+
   const [inputValue, setInputValue] = useState("");
   const [loadingStep, setLoadingStep] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -76,11 +50,123 @@ export default function Home() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 1. Hydrate state from localStorage on initial mount asynchronously
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.champion && parsed.roundNumber) {
+            // Strip obsolete legacy image URLs so all entities render in unified notebook emoji style
+            const cleanChampion = { ...parsed.champion };
+            delete cleanChampion.imageUrl;
+            setChampion(cleanChampion);
+            setRoundNumber(parsed.roundNumber);
+            if (Array.isArray(parsed.history)) {
+              setHistory(parsed.history);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to load saved session:", e);
+      } finally {
+        setIsHydrated(true);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 2. Persist state to localStorage on updates (only after initial hydration)
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          champion,
+          roundNumber,
+          history,
+        })
+      );
+    } catch (e) {
+      console.warn("Failed to save session:", e);
+    }
+  }, [champion, roundNumber, history, isHydrated]);
+
   useEffect(() => {
     if (!loadingStep && (!duelState || duelState.phase === "result")) {
       inputRef.current?.focus();
     }
   }, [loadingStep, duelState]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((current) => (current === msg ? null : current));
+    }, 3200);
+  };
+
+  const handleShare = async () => {
+    const highlights = history
+      .slice(0, 3)
+      .map(
+        (h) =>
+          `• ${h.winner === "challenger" ? "👑 Dethroned by" : "🛡️ Crushed"} ${h.challengerName} ${h.challengerEmoji || ""}: "${h.headline}"`
+      )
+      .join("\n");
+
+    const bragText = [
+      `🥪 IDIOT SANDWICH — Round ${roundNumber}`,
+      `👑 Champion: ${champion.canonicalName} ${champion.emoji || ""}`,
+      `⚡ Power: ${champion.power} | Defenses: ${champion.defensesWon}`,
+      highlights ? `\n📜 Highlights:\n${highlights}` : "",
+      `\nCan you make a sandwich that beats this?`,
+      typeof window !== "undefined" ? window.location.origin : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: "Idiot Sandwich Run",
+          text: bragText,
+          url: window.location.href,
+        });
+        showToast("Shared sandwich brag!");
+        return;
+      } catch (err: unknown) {
+        if ((err as Error)?.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(bragText);
+      showToast("📋 Copied run brag to clipboard!");
+    } catch {
+      showToast("Failed to copy run.");
+    }
+  };
+
+  const handleReset = () => {
+    setChampion(STARTER_CHAMPION);
+    setRoundNumber(1);
+    setHistory([]);
+    setDuelState(null);
+    setErrorMessage(null);
+    setShowResetConfirm(false);
+    setShowHistory(false);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore
+    }
+    showToast("Run reset back to The Humble Onion 🧅");
+  };
 
   const handleFight = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -129,7 +215,6 @@ export default function Home() {
 
         challenger = {
           ...data.challenger,
-          imageUrl: getSandwichImage(data.challenger) || undefined,
         };
         verdict = {
           winner: data.winner,
@@ -141,7 +226,6 @@ export default function Home() {
       } catch {
         // Deterministic fallback if API fails
         challenger = normalizeEntity(query);
-        challenger.imageUrl = getSandwichImage(challenger) || undefined;
         verdict = adjudicateDuel(champion, challenger);
       }
 
@@ -162,6 +246,21 @@ export default function Home() {
           verdict,
           phase: "result",
         });
+
+        // Record in history
+        const newRecord: TurnHistoryRecord = {
+          turnIndex: roundNumber,
+          championName: champion.canonicalName,
+          championEmoji: champion.emoji,
+          challengerName: challenger.canonicalName,
+          challengerEmoji: challenger.emoji,
+          winner: verdict.winner,
+          headline: verdict.shortHeadline,
+          reason: verdict.humorousReason,
+          dominantFactor: verdict.dominantFactor,
+          timestamp: Date.now(),
+        };
+        setHistory((prev) => [newRecord, ...prev]);
 
         if (verdict.winner === "challenger") {
           setChampion({
@@ -290,65 +389,130 @@ export default function Home() {
         </svg>
       </aside>
 
-      {/* ================= 1. TITLE / LOGO ================= */}
+      {/* ================= 1. TITLE / LOGO & ACTIONS ================= */}
       <header
         style={{
           width: "100%",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "space-between",
           alignItems: "flex-start",
           marginBottom: "clamp(0.75rem, 2vh, 1.5rem)",
+          gap: "12px",
+          flexWrap: "wrap",
         }}
       >
-        {/* Tiny Crown above title */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            marginBottom: "-4px",
-            marginLeft: "2px",
-          }}
-        >
-          <svg
-            width="20"
-            height="15"
-            viewBox="0 0 24 18"
-            fill="none"
-            stroke="#171717"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ transform: "rotate(-5deg)" }}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+          {/* Tiny Crown above title */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              marginBottom: "-4px",
+              marginLeft: "2px",
+            }}
           >
-            <path d="M2 16L4 5L9 11L14 3L19 11L21 5L22 16H2Z" fill="#F2C94C" />
-          </svg>
+            <svg
+              width="20"
+              height="15"
+              viewBox="0 0 24 18"
+              fill="none"
+              stroke="#171717"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transform: "rotate(-5deg)" }}
+            >
+              <path d="M2 16L4 5L9 11L14 3L19 11L21 5L22 16H2Z" fill="#F2C94C" />
+            </svg>
+          </div>
+
+          <h1
+            className="font-display"
+            style={{
+              fontSize: "clamp(2.3rem, 5vw, 3.2rem)",
+              lineHeight: 0.9,
+              fontWeight: 900,
+              letterSpacing: "-0.01em",
+              color: "var(--ink-primary)",
+              margin: 0,
+              userSelect: "none",
+            }}
+          >
+            IDIOT<br />SANDWICH
+          </h1>
+
+          <div
+            className="font-display"
+            style={{
+              fontSize: "1.15rem",
+              color: "var(--ink-secondary)",
+              marginTop: "3px",
+              letterSpacing: "0.02em",
+            }}
+          >
+            type anything.
+          </div>
         </div>
 
-        <h1
-          className="font-display"
-          style={{
-            fontSize: "clamp(2.3rem, 5vw, 3.2rem)",
-            lineHeight: 0.9,
-            fontWeight: 900,
-            letterSpacing: "-0.01em",
-            color: "var(--ink-primary)",
-            margin: 0,
-            userSelect: "none",
-          }}
-        >
-          IDIOT<br />SANDWICH
-        </h1>
-
+        {/* Action Controls: Share, History, Reset */}
         <div
-          className="font-display"
           style={{
-            fontSize: "1.15rem",
-            color: "var(--ink-secondary)",
-            marginTop: "3px",
-            letterSpacing: "0.02em",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+            marginTop: "6px",
           }}
         >
-          type anything.
+          <button
+            type="button"
+            onClick={handleShare}
+            className="secondary-btn"
+            title="Copy run summary to share"
+          >
+            📋 Share
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowHistory((prev) => !prev)}
+            className={`secondary-btn ${showHistory ? "active" : ""}`}
+            title="Toggle battle history receipt"
+          >
+            📜 History {history.length > 0 ? `(${history.length})` : ""}
+          </button>
+
+          {showResetConfirm ? (
+            <div style={{ display: "inline-flex", gap: "4px", alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="secondary-btn"
+                style={{ backgroundColor: "var(--accent-yellow)", fontWeight: 700 }}
+              >
+                Reset? Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                className="secondary-btn"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            roundNumber > 1 && (
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(true)}
+                className="secondary-btn"
+                title="Restart run back to Round 1"
+              >
+                🔄 Reset
+              </button>
+            )
+          )}
         </div>
       </header>
 
@@ -674,6 +838,132 @@ export default function Home() {
             <ChipText text="tuesday" onClick={() => setInputValue("tuesday")} />
           </div>
         )}
+
+        {/* ================= BATTLE HISTORY DRAWER ================= */}
+        {showHistory && (
+          <div
+            className="animate-sketch-pop"
+            style={{
+              width: "100%",
+              maxWidth: "540px",
+              marginTop: "1.25rem",
+              padding: "14px 16px",
+              backgroundColor: "var(--bg-paper)",
+              border: "2px solid var(--ink-primary)",
+              borderRadius: "3px",
+              boxShadow: "var(--shadow-sketch)",
+              textAlign: "left",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "10px",
+                borderBottom: "1.5px dashed var(--ink-secondary)",
+                paddingBottom: "6px",
+              }}
+            >
+              <span className="font-display" style={{ fontSize: "1.2rem", fontWeight: 700 }}>
+                📓 BATTLE RECEIPT ({history.length} {history.length === 1 ? "Turn" : "Turns"})
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowHistory(false)}
+                className="secondary-btn"
+                style={{ padding: "1px 8px", fontSize: "0.85rem" }}
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {history.length === 0 ? (
+              <p
+                className="font-display"
+                style={{
+                  color: "var(--ink-secondary)",
+                  fontStyle: "italic",
+                  fontSize: "1rem",
+                  padding: "8px 0",
+                }}
+              >
+                No battles fought yet in this run. Challenge the Onion to make history!
+              </p>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  maxHeight: "260px",
+                  overflowY: "auto",
+                  paddingRight: "4px",
+                }}
+              >
+                {history.map((record, idx) => (
+                  <div key={idx} className="history-entry">
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "3px",
+                      }}
+                    >
+                      <span
+                        className="font-mono"
+                        style={{
+                          fontSize: "0.75rem",
+                          letterSpacing: "0.1em",
+                          color: "var(--ink-secondary)",
+                        }}
+                      >
+                        ROUND {record.turnIndex.toString().padStart(2, "0")}
+                      </span>
+                      <span
+                        className="highlighter font-display"
+                        style={{
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          backgroundColor:
+                            record.winner === "challenger"
+                              ? "var(--accent-yellow)"
+                              : "var(--bg-paper-muted)",
+                        }}
+                      >
+                        {record.winner === "challenger" ? "👑 NEW CHAMPION" : "🛡️ DEFENDED"}
+                      </span>
+                    </div>
+                    <div
+                      className="font-display"
+                      style={{
+                        fontSize: "1.05rem",
+                        fontWeight: 700,
+                        color: "var(--ink-primary)",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {record.championName} vs {record.challengerName} {record.challengerEmoji || ""}
+                    </div>
+                    <div
+                      className="font-display"
+                      style={{
+                        fontSize: "0.95rem",
+                        color: "var(--ink-secondary)",
+                        fontStyle: "italic",
+                        marginTop: "2px",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      &quot;{record.reason}&quot;
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* ================= FOOTER (Clean & Empty) ================= */}
@@ -697,6 +987,13 @@ export default function Home() {
           drawn in the back of a notebook
         </span>
       </footer>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="notebook-toast" role="status" aria-live="polite">
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -713,55 +1010,7 @@ function SandwichArtwork({
   entity: GameEntity;
   compact?: boolean;
 }) {
-  const imageSrc = getSandwichImage(entity);
   const width = compact ? "clamp(150px, 20vw, 190px)" : "clamp(260px, 38vw, 330px)";
-
-  if (imageSrc) {
-    return (
-      <div
-        style={{
-          width,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          userSelect: "none",
-        }}
-      >
-        {/* Graphical Generated Sandwich Illustration */}
-        <img
-          src={imageSrc}
-          alt={entity.canonicalName}
-          style={{
-            width: "100%",
-            height: "auto",
-            maxHeight: compact ? "140px" : "240px",
-            aspectRatio: "4 / 3",
-            objectFit: "contain",
-            mixBlendMode: "multiply",
-            display: "block",
-            filter: "contrast(1.04) drop-shadow(0px 3px 6px rgba(23, 23, 23, 0.08))",
-          }}
-        />
-        {/* Subtle Sketched Ground Line */}
-        <svg
-          width={compact ? "120" : "190"}
-          height="8"
-          viewBox="0 0 190 8"
-          fill="none"
-          style={{
-            marginTop: "-4px",
-            opacity: 0.35,
-          }}
-        >
-          <ellipse cx="95" cy="4" rx="80" ry="2.5" stroke="#171717" strokeWidth="1.25" strokeDasharray="3 2" />
-        </svg>
-      </div>
-    );
-  }
-
-  // Dynamic illustrated sandwich for unmapped custom inputs
   const bunHeight = compact ? "22px" : "clamp(30px, 4vw, 36px)";
   const fillingHeight = compact ? "55px" : "clamp(80px, 11vw, 100px)";
   const emojiSize = compact ? "2.6rem" : "clamp(3.8rem, 5.5vw, 4.8rem)";
