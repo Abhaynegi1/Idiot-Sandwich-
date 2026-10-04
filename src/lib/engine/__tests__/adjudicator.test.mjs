@@ -44,3 +44,25 @@ test("adjudicateDuel defends champion against inferior challenger", () => {
   assert.equal(verdict.winner, "champion");
   assert.equal(verdict.dominantFactor, "scale");
 });
+
+test("normalizeEntity correctly categorizes vehicles and abstract concepts", () => {
+  const car = normalizeEntity("1994 toyota corolla");
+  assert.equal(car.category, "Vehicle");
+
+  const god = normalizeEntity("zeus god of thunder");
+  assert.equal(god.category, "Abstract");
+
+  const tuesday = normalizeEntity("a rainy tuesday morning");
+  assert.equal(tuesday.category, "Abstract");
+});
+
+test("adjudicateDuel resolves mirror match cleanly without error", () => {
+  const onionA = normalizeEntity("onion");
+  const onionB = normalizeEntity("onion");
+
+  const verdict = adjudicateDuel(onionA, onionB);
+  assert.ok(["champion", "challenger"].includes(verdict.winner));
+  assert.ok(verdict.shortHeadline);
+  assert.ok(verdict.humorousReason);
+});
+

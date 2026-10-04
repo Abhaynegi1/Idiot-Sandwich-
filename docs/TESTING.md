@@ -22,32 +22,38 @@ Because IDIOT SANDWICH accepts unbounded natural language and relies on AI evalu
 
 ## 🧪 Testing Categories
 
-### 1. Unit Tests
-*Focus on deterministic, isolated business logic.*
+### 1. Automated Test Suite (17 Tests Passing)
+*Native, sub-second execution using Node.js `--test` and `--experimental-strip-types`.*
 
-- **Input Normalization & Sanitization:**
-  - Trimming whitespace, collapsing unicode tricks, stripping HTML/script tags.
+- **Input Sanitization & Security (`src/lib/security/__tests__/sanitizer.test.mjs`):**
+  - Trimming whitespace, collapsing unicode tricks, stripping HTML/script/XSS tags.
   - Character limit enforcement (rejecting strings >120 chars).
-- **Game State Invariants:**
-  - Verifying turn counter increments monotonically (`turnIndex = turnIndex + 1`).
-  - Ensuring champion replacement occurs if and only if `winner === "challenger"`.
-  - Verifying defense streak increments on champion retention.
-- **Rule Engine Validation:**
+  - Defense against prompt injection (`"Ignore previous instructions..."`).
+  - Detection and rejection of prohibited toxic terms.
+  - Safe handling of non-string inputs (null, numbers).
+- **Rule Engine & Fallback Adjudication (`src/lib/engine/__tests__/adjudicator.test.mjs`):**
+  - Normalizing natural language concepts into canonical sandwich entities.
+  - Resolving scale advantages (destruction, elemental counters, inferior challengers).
+  - Multi-category classification (`Vehicle`, `Abstract`, `Weapon`, `Cosmic`).
+  - Resolving mirror-match duels cleanly.
+- **Hybrid AI Adjudication & Fallback (`src/lib/engine/__tests__/hybrid-adjudicator.test.mjs`):**
+  - Testing `evaluateMatchup` with Option C fallback guarantees.
+  - Adjudication structure validation (`winner`, `confidence`, `shortHeadline`, `humorousReason`).
+  - Handling abstract, philosophical, and surreal concepts.
+- **Contract & Schema Validation (`src/lib/engine/__tests__/schemas.test.mjs`):**
   - Validating structured Zod schemas for AI response payloads.
-  - Asserting fallback values when an evaluation payload contains partial nulls.
+  - Rejecting out-of-bound confidence ratings or unknown winner values.
+  - Validating `ChallengeRequestSchema` payloads.
 
 ---
 
-### 2. Integration Tests
-*Focus on service handshakes, database transactions, and API routes.*
+### 2. Continuous Integration (GitHub Actions)
 
-- **Game Lifecycle:**
-  - `POST /api/game` creates a database record with a valid default champion entity.
-  - `GET /api/game/:id` returns formatted champion metadata.
-- **Challenge Execution:**
-  - `POST /api/game/:id/challenge` records a `GameTurn`, invokes the mocked AI evaluator, updates the champion foreign key, and returns HTTP 200.
-- **Data Persistence:**
-  - Verifying turns are strictly linked to the correct game ID and maintain chronological ordering.
+Configured in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) across Node `20.x` and `22.x`:
+1. **Typecheck:** `npm run typecheck` (`tsc --noEmit`)
+2. **Linting:** `npm run lint` (`eslint`)
+3. **Automated Tests:** `npm test` (`node --test ...`)
+4. **Production Build:** `npm run build` (`next build`)
 
 ---
 

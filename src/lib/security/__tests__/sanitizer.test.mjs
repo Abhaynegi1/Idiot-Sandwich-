@@ -36,3 +36,24 @@ test("sanitizeInput detects prohibited toxic terms", () => {
   assert.equal(toxic.ok, false);
   assert.equal(toxic.statusCode, 422);
 });
+
+test("sanitizeInput safely strips complex HTML and script elements", () => {
+  const xss1 = sanitizeInput("<script>alert('pwned')</script>Laser Cannon");
+  assert.equal(xss1.ok, true);
+  assert.equal(xss1.sanitized, "alert('pwned')Laser Cannon");
+
+  const xss2 = sanitizeInput("<img src=x onerror=alert(1)>Flamethrower");
+  assert.equal(xss2.ok, true);
+  assert.equal(xss2.sanitized, "Flamethrower");
+});
+
+test("sanitizeInput handles non-string inputs safely", () => {
+  const nullInput = sanitizeInput(null);
+  assert.equal(nullInput.ok, false);
+  assert.equal(nullInput.statusCode, 400);
+
+  const numInput = sanitizeInput(12345);
+  assert.equal(numInput.ok, false);
+  assert.equal(numInput.statusCode, 400);
+});
+

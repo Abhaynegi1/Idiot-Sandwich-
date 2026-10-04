@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
-import { MatchupEvaluationSchema, type MatchupEvaluation } from "./schemas";
-import { normalizeEntity, adjudicateDuel } from "./mock-adjudicator";
-import type { GameEntity } from "@/types/game";
+import { MatchupEvaluationSchema, type MatchupEvaluation } from "./schemas.ts";
+import { normalizeEntity, adjudicateDuel } from "./mock-adjudicator.ts";
+import type { GameEntity } from "../../types/game.ts";
 
 export interface AdjudicationResult {
   evaluation: MatchupEvaluation;
