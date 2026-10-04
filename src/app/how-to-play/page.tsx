@@ -1,9 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  DoodlePencil,
+  DoodleChefHat,
+  DoodleCrown,
+  DoodleScales,
+  DoodlePlanet,
+  DoodleLightning,
+  DoodleBrain,
+  DoodleCleaver,
+  DoodleReceipt,
+  DoodleBulb,
+  MiniOnion,
+  MiniKnife,
+  MiniCar,
+  MiniAsteroid,
+  MiniBomb,
+  MiniBug,
+} from "@/components/doodle-icons";
 
 export const metadata: Metadata = {
-  title: "How to Play | Idiot Sandwich 🥪",
+  title: "How to Play | Idiot Sandwich",
   description: "Master the kitchen of absurdity. Learn how to defeat sandwich champions, climb the streak ladder, and crown new culinary abominations.",
 };
 
@@ -169,7 +187,9 @@ export default function HowToPlayPage() {
           >
             STEP 01
           </div>
-          <div style={{ fontSize: "2rem", margin: "0.5rem 0 0.25rem" }}>✍️</div>
+          <div style={{ margin: "0.6rem 0 0.35rem" }}>
+            <DoodlePencil size={38} />
+          </div>
           <h3
             className="font-display"
             style={{ fontSize: "1.35rem", marginBottom: "0.4rem", fontWeight: 700 }}
@@ -210,7 +230,9 @@ export default function HowToPlayPage() {
           >
             STEP 02
           </div>
-          <div style={{ fontSize: "2rem", margin: "0.5rem 0 0.25rem" }}>🤖</div>
+          <div style={{ margin: "0.6rem 0 0.35rem" }}>
+            <DoodleChefHat size={38} />
+          </div>
           <h3
             className="font-display"
             style={{ fontSize: "1.35rem", marginBottom: "0.4rem", fontWeight: 700 }}
@@ -251,7 +273,9 @@ export default function HowToPlayPage() {
           >
             STEP 03
           </div>
-          <div style={{ fontSize: "2rem", margin: "0.5rem 0 0.25rem" }}>👑</div>
+          <div style={{ margin: "0.6rem 0 0.35rem" }}>
+            <DoodleCrown size={38} />
+          </div>
           <h3
             className="font-display"
             style={{ fontSize: "1.35rem", marginBottom: "0.4rem", fontWeight: 700 }}
@@ -285,9 +309,13 @@ export default function HowToPlayPage() {
             fontSize: "clamp(1.4rem, 3.5vw, 1.85rem)",
             fontWeight: 800,
             marginBottom: "0.75rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "10px",
           }}
         >
-          ⚖️ The Laws of Kitchen Combat
+          <DoodleScales size={26} />
+          <span>The Laws of Kitchen Combat</span>
         </h3>
         <p
           className="font-mono"
@@ -304,7 +332,9 @@ export default function HowToPlayPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {/* Pillar 1 */}
           <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.4rem" }}>🪐</span>
+            <div style={{ marginTop: "2px" }}>
+              <DoodlePlanet size={24} />
+            </div>
             <div>
               <strong className="font-display" style={{ fontSize: "1.15rem" }}>
                 1. Scale & Mass:
@@ -317,7 +347,9 @@ export default function HowToPlayPage() {
 
           {/* Pillar 2 */}
           <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.4rem" }}>⚡</span>
+            <div style={{ marginTop: "2px" }}>
+              <DoodleLightning size={24} />
+            </div>
             <div>
               <strong className="font-display" style={{ fontSize: "1.15rem" }}>
                 2. Elemental & Material Counters:
@@ -330,7 +362,9 @@ export default function HowToPlayPage() {
 
           {/* Pillar 3 */}
           <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.4rem" }}>🧠</span>
+            <div style={{ marginTop: "2px" }}>
+              <DoodleBrain size={24} />
+            </div>
             <div>
               <strong className="font-display" style={{ fontSize: "1.15rem" }}>
                 3. Conceptual & Metaphysical Power:
@@ -343,7 +377,9 @@ export default function HowToPlayPage() {
 
           {/* Pillar 4 */}
           <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.4rem" }}>🔪</span>
+            <div style={{ marginTop: "2px" }}>
+              <DoodleCleaver size={24} />
+            </div>
             <div>
               <strong className="font-display" style={{ fontSize: "1.15rem" }}>
                 4. Chef Discretion & Comedy:
@@ -365,9 +401,14 @@ export default function HowToPlayPage() {
             fontWeight: 800,
             marginBottom: "0.5rem",
             textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
           }}
         >
-          📜 Battle Receipts From The Field
+          <DoodleReceipt size={26} />
+          <span>Battle Receipts From The Field</span>
         </h3>
         <p
           className="font-mono"
@@ -402,20 +443,34 @@ export default function HowToPlayPage() {
                 gap: "8px",
               }}
             >
-              <div className="font-display" style={{ fontSize: "1.15rem", fontWeight: 700 }}>
-                🧅 The Humble Onion Sandwich <span style={{ color: "var(--ink-secondary)" }}>vs</span> 🔪 A Sharp Chef Knife
+              <div
+                className="font-display"
+                style={{
+                  fontSize: "1.15rem",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <MiniOnion />
+                <span>The Humble Onion Sandwich</span>
+                <span style={{ color: "var(--ink-secondary)", margin: "0 2px" }}>vs</span>
+                <MiniKnife />
+                <span>A Sharp Chef Knife</span>
               </div>
               <span
                 className="font-mono"
                 style={{
                   backgroundColor: "var(--accent-yellow)",
                   border: "1px solid var(--ink-primary)",
-                  padding: "1px 6px",
+                  padding: "1px 8px",
                   fontSize: "0.75rem",
                   fontWeight: 700,
+                  borderRadius: "2px",
                 }}
               >
-                WINNER: 🔪 KNIFE
+                WINNER: KNIFE
               </span>
             </div>
             <p className="font-mono" style={{ fontSize: "0.82rem", color: "var(--ink-secondary)", lineHeight: 1.4 }}>
@@ -443,20 +498,34 @@ export default function HowToPlayPage() {
                 gap: "8px",
               }}
             >
-              <div className="font-display" style={{ fontSize: "1.15rem", fontWeight: 700 }}>
-                🚗 Toyota Corolla Sandwich <span style={{ color: "var(--ink-secondary)" }}>vs</span> ☄️ A 5-Mile Asteroid
+              <div
+                className="font-display"
+                style={{
+                  fontSize: "1.15rem",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <MiniCar />
+                <span>Toyota Corolla Sandwich</span>
+                <span style={{ color: "var(--ink-secondary)", margin: "0 2px" }}>vs</span>
+                <MiniAsteroid />
+                <span>A 5-Mile Asteroid</span>
               </div>
               <span
                 className="font-mono"
                 style={{
                   backgroundColor: "var(--accent-yellow)",
                   border: "1px solid var(--ink-primary)",
-                  padding: "1px 6px",
+                  padding: "1px 8px",
                   fontSize: "0.75rem",
                   fontWeight: 700,
+                  borderRadius: "2px",
                 }}
               >
-                WINNER: ☄️ ASTEROID
+                WINNER: ASTEROID
               </span>
             </div>
             <p className="font-mono" style={{ fontSize: "0.82rem", color: "var(--ink-secondary)", lineHeight: 1.4 }}>
@@ -484,20 +553,34 @@ export default function HowToPlayPage() {
                 gap: "8px",
               }}
             >
-              <div className="font-display" style={{ fontSize: "1.15rem", fontWeight: 700 }}>
-                💣 Nuclear Warhead Sandwich <span style={{ color: "var(--ink-secondary)" }}>vs</span> 🪳 A Cockroach
+              <div
+                className="font-display"
+                style={{
+                  fontSize: "1.15rem",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <MiniBomb />
+                <span>Nuclear Warhead Sandwich</span>
+                <span style={{ color: "var(--ink-secondary)", margin: "0 2px" }}>vs</span>
+                <MiniBug />
+                <span>A Cockroach</span>
               </div>
               <span
                 className="font-mono"
                 style={{
                   backgroundColor: "#EAE5D9",
                   border: "1px solid var(--ink-primary)",
-                  padding: "1px 6px",
+                  padding: "1px 8px",
                   fontSize: "0.75rem",
                   fontWeight: 700,
+                  borderRadius: "2px",
                 }}
               >
-                WINNER: 💣 WARHEAD (DEFENDED)
+                WINNER: WARHEAD (DEFENDED)
               </span>
             </div>
             <p className="font-mono" style={{ fontSize: "0.82rem", color: "var(--ink-secondary)", lineHeight: 1.4 }}>
@@ -518,8 +601,19 @@ export default function HowToPlayPage() {
           backgroundColor: "rgba(242, 201, 76, 0.08)",
         }}
       >
-        <h4 className="font-display" style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-          💡 Master Chef Tips
+        <h4
+          className="font-display"
+          style={{
+            fontSize: "1.3rem",
+            fontWeight: 700,
+            marginBottom: "0.5rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <DoodleBulb size={24} />
+          <span>Master Chef Tips</span>
         </h4>
         <ul
           className="font-mono"
@@ -539,7 +633,7 @@ export default function HowToPlayPage() {
             <strong>Get Specific:</strong> Typing &quot;a dog with a laser visor&quot; gives the referee more comedic material than just &quot;dog&quot;.
           </li>
           <li>
-            <strong>Share Receipts:</strong> Click <strong>📋 Share</strong> on the homepage anytime to copy a retro emoji scorecard to your clipboard.
+            <strong>Share Receipts:</strong> Click <strong>Share</strong> on the homepage anytime to copy a retro scorecard to your clipboard.
           </li>
         </ul>
       </section>
@@ -553,11 +647,18 @@ export default function HowToPlayPage() {
             textDecoration: "none",
             display: "inline-flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "10px",
             fontSize: "1.45rem",
           }}
         >
-          🥪 Back to the Kitchen & Fight!
+          <Image
+            src="/icon.svg"
+            alt="Sandwich"
+            width={26}
+            height={26}
+            style={{ filter: "drop-shadow(1px 1px 0px var(--ink-primary))" }}
+          />
+          <span>Back to the Kitchen & Fight!</span>
         </Link>
       </div>
 
