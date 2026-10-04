@@ -576,7 +576,7 @@ export default function Home() {
           >
             {/* Clashing Champion */}
             <div className="animate-clash-left" style={{ textAlign: "center" }}>
-              <SandwichArtwork entity={champion} compact />
+              <SandwichArtwork entity={champion} compact isChampion />
               <div
                 className="font-display"
                 style={{
@@ -633,7 +633,7 @@ export default function Home() {
               alignItems: "center",
             }}
           >
-            <SandwichArtwork entity={champion} />
+            <SandwichArtwork entity={champion} isChampion />
           </div>
         )}
 
@@ -999,23 +999,30 @@ export default function Home() {
  * Displays high-quality graphical generated sandwich art on the notebook page,
  * with seamless multiply blending and clean physical presence.
  */
+/**
+ * Large, expressive Sandwich Artwork
+ * Displays a delicious, hand-drawn vector artisan sandwich clamping the absurd entity.
+ * Features organic brioche buns, melting cheddar drips, crisp wavy lettuce,
+ * and the signature crooked golden crown for the reigning champion.
+ */
 function SandwichArtwork({
   entity,
   compact = false,
+  isChampion = false,
 }: {
   entity: GameEntity;
   compact?: boolean;
+  isChampion?: boolean;
 }) {
-  const width = compact ? "clamp(150px, 20vw, 190px)" : "clamp(260px, 38vw, 330px)";
-  const bunHeight = compact ? "22px" : "clamp(30px, 4vw, 36px)";
-  const fillingHeight = compact ? "55px" : "clamp(80px, 11vw, 100px)";
-  const emojiSize = compact ? "2.6rem" : "clamp(3.8rem, 5.5vw, 4.8rem)";
+  const reactId = React.useId().replace(/:/g, "_");
+  const width = compact ? "clamp(135px, 20vw, 175px)" : "clamp(230px, 32vw, 295px)";
+  const heroColor = entity.pixelColor || "#8E4A35";
 
   return (
     <div
       style={{
         width,
-        display: "flex",
+        display: "inline-flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
@@ -1023,129 +1030,183 @@ function SandwichArtwork({
         userSelect: "none",
       }}
     >
-      {/* Top Bun */}
-      <div
-        style={{
-          width: "90%",
-          height: bunHeight,
-          backgroundColor: "#DFB277",
-          border: "2.5px solid var(--ink-primary)",
-          borderRadius: "20px 20px 5px 5px",
-          boxShadow: "var(--shadow-sketch-sm)",
-          marginBottom: "-6px",
-          zIndex: 4,
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: "6px",
-            left: "25%",
-            width: "8px",
-            height: "2.5px",
-            backgroundColor: "var(--ink-primary)",
-            borderRadius: "2px",
-            transform: "rotate(-10deg)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "7px",
-            right: "28%",
-            width: "8px",
-            height: "2.5px",
-            backgroundColor: "var(--ink-primary)",
-            borderRadius: "2px",
-            transform: "rotate(12deg)",
-          }}
-        />
-      </div>
-
-      {/* Filling Core with Absurd Entity */}
-      <div
-        style={{
-          width: "96%",
-          height: fillingHeight,
-          backgroundColor: entity.pixelColor || "#F4EDE0",
-          border: "2.5px solid var(--ink-primary)",
-          borderRadius: "6px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: emojiSize,
-          boxShadow: "var(--shadow-sketch)",
-          zIndex: 3,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-3px",
-            left: "6px",
-            width: "28px",
-            height: "8px",
-            backgroundColor: "#7D9D64",
-            border: "1.5px solid var(--ink-primary)",
-            borderRadius: "4px",
-            transform: "rotate(-6deg)",
-            zIndex: 1,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-4px",
-            right: "12px",
-            width: "20px",
-            height: "10px",
-            backgroundColor: "var(--accent-yellow)",
-            border: "1.5px solid var(--ink-primary)",
-            borderRadius: "2px 2px 5px 5px",
-            transform: "rotate(4deg)",
-            zIndex: 1,
-          }}
-        />
-        <span
-          style={{
-            position: "relative",
-            zIndex: 2,
-            filter: "drop-shadow(2px 2px 0px rgba(0,0,0,0.15))",
-          }}
-        >
-          {entity.emoji}
-        </span>
-      </div>
-
-      {/* Bottom Bun */}
-      <div
-        style={{
-          width: "92%",
-          height: bunHeight,
-          backgroundColor: "#D0A065",
-          border: "2.5px solid var(--ink-primary)",
-          borderRadius: "4px 4px 18px 18px",
-          boxShadow: "var(--shadow-sketch-sm)",
-          marginTop: "-6px",
-          zIndex: 2,
-        }}
-      />
-
-      {/* Ground Shadow */}
       <svg
-        width={compact ? "120" : "190"}
-        height="8"
-        viewBox="0 0 190 8"
-        fill="none"
+        viewBox="0 0 280 206"
         style={{
-          marginTop: "4px",
-          opacity: 0.35,
+          width: "100%",
+          height: "auto",
+          overflow: "visible",
+          filter: "drop-shadow(0 6px 14px rgba(23, 23, 23, 0.08))",
         }}
       >
-        <ellipse cx="95" cy="4" rx="80" ry="2.5" stroke="#171717" strokeWidth="1.25" strokeDasharray="3 2" />
+        <defs>
+          {/* Top Brioche Bun Gradient */}
+          <linearGradient id={`topBun-${reactId}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#F7D393" />
+            <stop offset="45%" stopColor="#E9B973" />
+            <stop offset="100%" stopColor="#D59B51" />
+          </linearGradient>
+
+          {/* Bottom Bun Gradient */}
+          <linearGradient id={`botBun-${reactId}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#DE9E55" />
+            <stop offset="100%" stopColor="#BD7C31" />
+          </linearGradient>
+
+          {/* Filling Bed Gradient */}
+          <linearGradient id={`patty-${reactId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={heroColor} stopOpacity="0.88" />
+            <stop offset="100%" stopColor={heroColor} />
+          </linearGradient>
+        </defs>
+
+        {/* 1. Ground Sketch Shadow */}
+        <ellipse cx="140" cy="194" rx="86" ry="6.5" fill="#171717" opacity="0.14" />
+        <ellipse cx="140" cy="194" rx="52" ry="3.5" fill="#171717" opacity="0.12" />
+        <g stroke="#171717" strokeWidth="1.5" strokeLinecap="round" opacity="0.28">
+          <path d="M 66 196 L 76 198" />
+          <path d="M 92 197 L 104 199" />
+          <path d="M 176 197 L 188 199" />
+          <path d="M 204 196 L 214 198" />
+        </g>
+
+        {/* 2. Bottom Bun */}
+        <path
+          d="M 42 144 C 34 158 46 182 140 182 C 234 182 246 158 238 144 C 232 140 218 142 140 142 C 62 142 48 140 42 144 Z"
+          fill={`url(#botBun-${reactId})`}
+          stroke="#171717"
+          strokeWidth="3.2"
+          strokeLinejoin="round"
+        />
+        {/* Bottom Bun Toasted Rim Accent */}
+        <path
+          d="M 68 173 C 96 179 184 179 212 173"
+          stroke="#9E5D20"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.45"
+        />
+
+        {/* 3. Wavy Ruffled Lettuce Layer */}
+        {/* Left Leaf */}
+        <path
+          d="M 26 142 C 14 137 12 125 22 120 C 30 116 36 122 44 122 C 52 122 56 116 64 118 C 72 120 76 131 68 140 Z"
+          fill="#5FA842"
+          stroke="#171717"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+        <path d="M 30 129 C 40 127 52 129 60 134" stroke="#3E7528" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+
+        {/* Right Leaf */}
+        <path
+          d="M 212 140 C 204 131 208 120 216 118 C 224 116 228 122 236 122 C 244 122 250 116 258 120 C 268 125 266 137 254 142 Z"
+          fill="#5FA842"
+          stroke="#171717"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+        <path d="M 250 129 C 240 127 228 129 220 134" stroke="#3E7528" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+
+        {/* 4. Tomato Slice Accents */}
+        <path
+          d="M 48 136 C 44 124 54 114 70 116 C 80 118 84 130 78 138 Z"
+          fill="#E04638"
+          stroke="#171717"
+          strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+        <circle cx="60" cy="125" r="1.5" fill="#FFE082" />
+        <circle cx="68" cy="127" r="1.5" fill="#FFE082" />
+
+        {/* 5. Center Savory Filling Bed / Entity Wrap */}
+        <rect
+          x="42"
+          y="96"
+          width="196"
+          height="48"
+          rx="14"
+          fill={`url(#patty-${reactId})`}
+          stroke="#171717"
+          strokeWidth="2.75"
+        />
+
+        {/* 6. Melted Golden Cheddar Cheese Drips */}
+        <path
+          d="M 38 90 L 242 90 C 247 90 249 94 246 98 L 236 114 C 233 118 227 118 225 112 L 218 96 L 180 96 L 172 122 C 170 128 162 128 160 122 L 152 96 L 124 96 L 116 116 C 114 120 108 120 106 116 L 98 96 L 66 96 L 56 118 C 54 122 48 122 46 117 L 38 100 C 36 96 37 90 38 90 Z"
+          fill="#F6C744"
+          stroke="#171717"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+
+        {/* 7. Center Hero Clamped Entity (Emoji) */}
+        <foreignObject x="35" y="72" width="210" height="92">
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: compact ? "44px" : "58px",
+              lineHeight: 1,
+              filter: "drop-shadow(0 3px 5px rgba(0,0,0,0.22))",
+              pointerEvents: "none",
+            }}
+          >
+            {entity.emoji || "🥪"}
+          </div>
+        </foreignObject>
+
+        {/* 8. Top Brioche Dome Bun */}
+        <path
+          d="M 34 88 C 28 44 70 28 140 28 C 210 28 252 44 246 88 C 244 92 236 93 224 93 L 56 93 C 44 93 36 92 34 88 Z"
+          fill={`url(#topBun-${reactId})`}
+          stroke="#171717"
+          strokeWidth="3.4"
+          strokeLinejoin="round"
+        />
+
+        {/* Top Bun Creamy Crust Highlight */}
+        <path
+          d="M 64 54 C 88 40 120 35 150 35"
+          stroke="#FFF6E0"
+          strokeWidth="4"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.65"
+        />
+
+        {/* Hand-Drawn Sesame Seeds */}
+        <g fill="#FFFDF5" stroke="#171717" strokeWidth="1.5">
+          <ellipse cx="94" cy="62" rx="3.5" ry="2" transform="rotate(-15 94 62)" />
+          <ellipse cx="120" cy="48" rx="3.5" ry="2" transform="rotate(10 120 48)" />
+          <ellipse cx="148" cy="44" rx="3.5" ry="2" transform="rotate(-5 148 44)" />
+          <ellipse cx="176" cy="52" rx="3.5" ry="2" transform="rotate(20 176 52)" />
+          <ellipse cx="200" cy="66" rx="3.5" ry="2" transform="rotate(-25 200 66)" />
+          <ellipse cx="134" cy="66" rx="3.5" ry="2" transform="rotate(5 134 66)" />
+          <ellipse cx="164" cy="68" rx="3.5" ry="2" transform="rotate(-12 164 68)" />
+        </g>
+
+        {/* 9. Crooked Golden Crown (Perched for Champion) */}
+        {isChampion && (
+          <g transform="translate(140, 16) rotate(-7) translate(-18, -16)">
+            <path
+              d="M 3 18 L 7 4 L 14 11 L 21 2 L 28 11 L 35 4 L 39 18 Z"
+              fill="#F2C94C"
+              stroke="#171717"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="7" cy="4" r="1.8" fill="#E65100" />
+            <circle cx="21" cy="2" r="2.2" fill="#E65100" />
+            <circle cx="35" cy="4" r="1.8" fill="#E65100" />
+            <circle cx="21" cy="13" r="1.4" fill="#171717" />
+          </g>
+        )}
       </svg>
     </div>
   );
