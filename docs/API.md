@@ -1,158 +1,128 @@
-# IDIOT SANDWICH — Proposed API Specification
+# IDIOT SANDWICH — API Specification (Zero-DB Architecture)
 
-> Conceptual REST/RPC endpoint contracts, payload structures, error taxonomy, and rate-limiting guidelines. Endpoints are proposed architectural blueprints and are not yet implemented.
+> Endpoint contracts, request/response payloads, and error handling for the stateless adjudication server. Under **DEC-014**, the backend serves purely as a stateless edge/serverless proxy to sanitize inputs and evaluate duels with Google Gemini while securing API credentials.
 
 ---
 
-## 🌐 Endpoint Summary (Proposed)
+## 🌐 Endpoint Summary
 
-| Method | Endpoint | Purpose | MVP Status |
+| Method | Endpoint | Purpose | Status |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/game` | Create or initialize a new game session. | `PROPOSED (MVP)` |
-| `GET` | `/api/game/:id` | Retrieve active game state and current champion. | `PROPOSED (MVP)` |
-| `POST` | `/api/game/:id/challenge` | Submit an arbitrary challenger entity to fight the champion. | `PROPOSED (MVP)` |
-| `GET` | `/api/game/:id/history` | Retrieve chronological turn chain and lineage. | `PROPOSED (MVP)` |
-| `GET` | `/api/entity/:id/image` | Poll or stream image generation status. | `PROPOSED (Post-MVP)` |
+| `POST` | `/api/challenge` | Evaluates a matchup between reigning champion and a challenger input. | `ACTIVE (Implemented)` |
+
+> **Note on Superseded Endpoints:** The earlier proposed relational CRUD endpoints (`POST /api/game`, `GET /api/game/:id`, `GET /api/game/:id/history`) have been superseded by [DEC-014](./DECISIONS.md#dec-014). Game state, round progression, and history are kept locally in client React state without server database overhead.
 
 ---
 
-## 📡 Detailed Endpoint Blueprints
+## 📡 Detailed Endpoint Specification
 
-### 1. `POST /api/game`
-**Purpose:** Initializes a new game instance with a default or seeded champion (e.g., "The Humble Onion Sandwich").
+### `POST /api/challenge`
 
-- **Authentication:** None (Anonymous session supported).
-- **Rate Limit:** 10 requests / minute per IP.
-- **Request Body:**
-  ```json
-  {
-    "starterEntity": "optional custom starter concept, or omitted for default"
+Submits an arbitrary player concept to battle the client's current champion.
+
+- **URL:** `/api/challenge`
+- **Method:** `POST`
+- **Content-Type:** `application/json`
+- **Authentication:** None (Protected by server-side rate limits and Gemini API key isolation).
+
+#### Request Body
+```json
+{
+  "rawInput": "a toaster that shoots guided missiles",
+  "champion": {
+    "id": "starter-onion",
+    "canonicalName": "THE HUMBLE ONION SANDWICH",
+    "sandwichDescription": "Raw red onion slices clamped between toasted sourdough.",
+    "category": "Mundane",
+    "power": "04",
+    "scaleTier": 6,
+    "defensesWon": 1
   }
-  ```
-- **Success Response (`201 Created`):**
-  ```json
-  {
-    "gameId": "b47c0a88-8255-4a55-89f4-279c67be2591",
-    "turnCount": 0,
-    "currentChampion": {
-      "id": "e112d7c5-7f12-4256-a1ce-2856f671bb52",
-      "canonicalName": "The Humble Onion",
-      "sandwichDescription": "Crispy golden toast with thinly sliced red onion and tears.",
-      "imageUrl": "https://cdn.idiotsandwich.game/images/starter-onion.webp",
-      "defensesWon": 0
-    },
-    "createdAt": "2026-09-28T16:00:00Z"
-  }
-  ```
-- **Error Responses:**
-  - `400 Bad Request`: Invalid seed parameters.
-  - `429 Too Many Requests`: Rate limit exceeded.
+}
+```
+
+#### Field Specifications:
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `rawInput` | `string` | Yes | Raw text input entered by the user (max 120 chars). Sanitized against script tags, HTML, and injection patterns. |
+| `champion` | `object` | Yes | Snapshot of the standing champion from client state. |
+| `champion.id` | `string` | Yes | Unique identifier of champion entity. |
+| `champion.canonicalName` | `string` | Yes | Display title of champion. |
+| `champion.sandwichDescription` | `string` | Yes | Descriptive text of how the champion is a sandwich. |
+| `champion.category` | `string` | Yes | One of `"Mundane"`, `"Vehicle"`, `"Weapon"`, `"Cosmic"`, `"Living"`, `"Abstract"`, `"Divine"`. |
+| `champion.power` | `string \| number` | Yes | Formatted power level (e.g. `"04"` or `4`). |
+| `champion.scaleTier` | `number` | Yes | Power/scale tier from 1 to 100. |
+| `champion.defensesWon` | `number` | Yes | Consecutive defense counter. |
 
 ---
 
-### 2. `GET /api/game/:id`
-**Purpose:** Fetches the current snapshot of a game, including the reigning champion and current turn number.
-
-- **Authentication:** None.
-- **Rate Limit:** 60 requests / minute per IP.
-- **Success Response (`200 OK`):**
-  ```json
-  {
-    "gameId": "b47c0a88-8255-4a55-89f4-279c67be2591",
-    "turnCount": 4,
-    "currentChampion": {
-      "id": "78201a4e-128d-4f10-bc2d-5f3a0972aa90",
-      "canonicalName": "Nuclear Warhead",
-      "sandwichDescription": "Two radioactive brioche halves holding a 50-megaton core.",
-      "imageUrl": "https://cdn.idiotsandwich.game/images/entities/nuclear-warhead.webp",
-      "defensesWon": 2
-    }
-  }
-  ```
-- **Error Responses:**
-  - `404 Not Found`: Game ID does not exist.
-
----
-
-### 3. `POST /api/game/:id/challenge`
-**Purpose:** Submits an arbitrary concept to battle the current champion of the specified game.
-
-- **Authentication:** Anonymous token / Session cookie.
-- **Rate Limit:** 15 requests / minute per IP (prevents LLM/image quota flooding).
-- **Request Body:**
-  ```json
-  {
-    "rawInput": "a black hole with an appetite"
-  }
-  ```
-- **Success Response (`200 OK`):**
-  ```json
-  {
-    "turnId": "c39a08e1-5e29-450b-80cb-3987fba45cd2",
-    "turnIndex": 5,
-    "winner": "challenger",
-    "isNewChampion": true,
-    "evaluation": {
-      "confidence": 0.96,
-      "shortHeadline": "Event Horizon Swallows the Warhead",
-      "humorousReason": "A nuclear blast is devastating, but a black hole pulls radiation, bread crumbs, and the laws of physics into an infinitely compressed snack.",
-      "dominantFactor": "cosmic_supremacy"
-    },
-    "challenger": {
-      "id": "fa2189d2-5a91-4e4b-97e3-057089b21f31",
-      "canonicalName": "Black Hole",
-      "sandwichDescription": "Two swirling cosmic crusts pinching a singularity.",
-      "imageStatus": "pending",
-      "imageUrl": "https://cdn.idiotsandwich.game/images/entities/black-hole.webp"
-    },
-    "champion": {
-      "id": "78201a4e-128d-4f10-bc2d-5f3a0972aa90",
-      "canonicalName": "Nuclear Warhead",
-      "defensesWon": 2
-    }
-  }
-  ```
-- **Error Responses:**
-  - `400 Bad Request`: Input empty or exceeds character limits (>120 chars).
-  - `422 Unprocessable Entity`: Input triggered safety/moderation filters.
-  - `429 Too Many Requests`: Rate limit reached.
-  - `503 Service Unavailable`: AI evaluation service timed out.
+#### Success Response (`200 OK`)
+```json
+{
+  "success": true,
+  "winner": "challenger",
+  "isNewChampion": true,
+  "evaluation": {
+    "confidence": 0.94,
+    "shortHeadline": "Missile Barrage Vaporizes the Onion",
+    "humorousReason": "Guided micro-missiles lock onto the sourdough crust and detonate, turning the allium champion into a warm caramelized mist before it can induce tears.",
+    "dominantFactor": "destruction"
+  },
+  "challenger": {
+    "id": "78201a4e-128d-4f10-bc2d-5f3a0972aa90",
+    "rawInput": "a toaster that shoots guided missiles",
+    "canonicalName": "HOMING MISSILE TOASTER SANDWICH",
+    "category": "Weapon",
+    "power": "42",
+    "scaleTier": 35,
+    "emoji": "🍞",
+    "pixelColor": "#8C92AC",
+    "sandwichDescription": "Two metallic chrome bread halves housing heated coils and twin micro-missile silos."
+  },
+  "adjudicatorSource": "gemini-live"
+}
+```
 
 ---
 
-### 4. `GET /api/game/:id/history`
-**Purpose:** Returns the sequential turn-by-turn history of a game session.
+#### Error Responses
 
-- **Authentication:** None.
-- **Success Response (`200 OK`):**
-  ```json
-  {
-    "gameId": "b47c0a88-8255-4a55-89f4-279c67be2591",
-    "totalTurns": 5,
-    "history": [
-      {
-        "turnIndex": 1,
-        "championName": "The Humble Onion",
-        "challengerName": "1994 Toyota Corolla",
-        "winner": "challenger",
-        "reason": "The Corolla drives directly over the onion without flinching."
-      },
-      {
-        "turnIndex": 2,
-        "championName": "1994 Toyota Corolla",
-        "challengerName": "Nuclear Warhead",
-        "winner": "challenger",
-        "reason": "50 megatons vaporizes the chassis into pure iron vapor."
-      }
-    ]
-  }
-  ```
+##### `400 Bad Request` — Input Validation / Sanitization Error
+```json
+{
+  "success": false,
+  "error": "Input contains forbidden characters or patterns."
+}
+```
+
+##### `422 Unprocessable Entity` — Safety & Moderation Triggered
+```json
+{
+  "success": false,
+  "error": "The kitchen safety inspector flagged this item. Keep it culinary and fun!"
+}
+```
+
+##### `500 Internal Server Error` — Fallback Anomaly
+```json
+{
+  "success": false,
+  "error": "The kitchen encountered a culinary anomaly. Please try again."
+}
+```
+
+---
+
+## 🔒 Security & Performance Guarantees
+
+1. **API Key Custody:** The `GEMINI_API_KEY` is strictly held on the server and is never exposed in browser JavaScript bundles.
+2. **Zero Persistent Storage:** Requests are processed in memory and no data is written to a server database.
+3. **Deterministic Option C Fallback:** If Gemini API is unreachable or rate-limited, the engine automatically resolves the battle via deterministic offline rules ([`gemini-adjudicator.ts`](../src/lib/engine/gemini-adjudicator.ts)).
 
 ---
 
 ## 🔗 Related Documentation
 
-- Data model fields: [DATA_MODEL.md](./DATA_MODEL.md)
-- Security & rate-limiting parameters: [SECURITY.md](./SECURITY.md)
-- Game engine validation logic: [GAME_ENGINE.md](./GAME_ENGINE.md)
-- Cost controls on API requests: [COSTS.md](./COSTS.md)
+- Session Data Model: [DATA_MODEL.md](./DATA_MODEL.md)
+- Architectural Decisions: [DECISIONS.md](./DECISIONS.md) (DEC-014)
+- Input Sanitization & Security: [SECURITY.md](./SECURITY.md)

@@ -38,9 +38,9 @@ Full architectural specifications, game rules, AI pipelines, and roadmap can be 
 
 ## Finalized Stack (Accepted)
 
-- **Frontend & Backend:** Next.js (App Router) + TypeScript
-- **Database:** Neon Serverless PostgreSQL
-- **ORM:** Drizzle ORM
-- **AI Adjudication:** Google Gemini 1.5 Flash (Structured JSON)
-- **Visuals:** Cache-First Async Sandwich Generation
-- **Hosting:** Vercel
+- **Frontend & App:** Next.js (App Router) + TypeScript + React 19
+- **State Architecture:** Pure Ephemeral Session State (Zero-DB / Zero-Maintenance)
+- **AI Adjudication:** Google Gemini 1.5 Flash (Structured JSON via `@google/genai`)
+- **Engine Guardrails:** Hybrid Option C (Deterministic offline fallback + Zod validation)
+- **Visuals:** Stylized Card System & Food Photography Templates
+- **Hosting:** Vercel (Edge / Serverless Functions)

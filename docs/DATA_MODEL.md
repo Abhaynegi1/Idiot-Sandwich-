@@ -1,128 +1,160 @@
-# IDIOT SANDWICH — Conceptual Data Model
+# IDIOT SANDWICH — Session Data Model (Zero-DB Architecture)
 
-> Architectural schema design, entity relationships, field definitions, and MVP vs. speculative boundaries. No physical migrations exist in this phase.
+> Runtime data structures, session interfaces, and payload contracts. Under **DEC-014**, Idiot Sandwich operates on a **Zero-DB** architecture: all state lives ephemerally in client React state (with optional browser localStorage). No server-side relational database, ORM, or migrations are required.
 
 ---
 
-## 🗺️ Entity Relationship Overview
+## 🗺️ Architectural Context: Zero-DB Design
+
+As codified in [DEC-014](./DECISIONS.md#dec-014), persistent databases (such as Neon PostgreSQL) have been superseded in favor of a clean, zero-maintenance runtime model:
+
+- **Ephemeral Sessions:** The player battles through their own session ladder starting from the Humble Onion.
+- **Client Custody:** Current champion, defense streaks, round counts, and match history live in the browser bundle.
+- **Stateless Server Proxy:** The `/api/challenge` endpoint passes sanitized concepts to Gemini 1.5 Flash and returns structured JSON verdicts without saving state.
 
 ```mermaid
-erDiagram
-    GAME ||--o{ GAME_TURN : contains
-    GAME }|--|| GAME_ENTITY : "current champion"
-    GAME_TURN }|--|| GAME_ENTITY : "champion entity"
-    GAME_TURN }|--|| GAME_ENTITY : "challenger entity"
-    GAME_TURN ||--|| AI_JUDGEMENT : produces
-    GAME_ENTITY ||--o| GENERATED_IMAGE : manifests_as
+classDiagram
+    class GameEntity {
+        +string id
+        +string rawInput
+        +string canonicalName
+        +Category category
+        +string power
+        +number scaleTier
+        +string emoji
+        +string pixelColor
+        +string sandwichDescription
+        +number defensesWon
+        +string imageUrl
+    }
+
+    class AdjudicationVerdict {
+        +string winner
+        +number confidence
+        +string shortHeadline
+        +string humorousReason
+        +string dominantFactor
+    }
+
+    class TurnHistoryRecord {
+        +number turnIndex
+        +string championName
+        +string challengerName
+        +string winner
+        +string headline
+        +string reason
+        +number timestamp
+    }
+
+    GameEntity "1" --> "1" AdjudicationVerdict : clashes
+    TurnHistoryRecord ..> GameEntity : records
 ```
 
 ---
 
-## 🗄️ Proposed Entity Specifications
+## 📦 Runtime TypeScript Interfaces
 
-### 1. `Game` (Active Session / Game Instance)
-- **Status:** `PROPOSED (Required for MVP)`
-- **Purpose:** Represents an isolated or global sequence of sandwich challenges.
-- **Fields:**
-  - `id`: UUID (Primary Key)
-  - `slug`: String (Human-readable game code or identifier)
-  - `currentChampionEntityId`: UUID (Foreign Key → `GameEntity`)
-  - `turnCount`: Integer (Total turns played in this run)
-  - `createdAt`: Timestamp
-  - `updatedAt`: Timestamp
-- **Relationships:**
-  - Has many `GameTurn` records.
-  - References a current champion `GameEntity`.
+These interfaces are implemented in [`src/types/game.ts`](../src/types/game.ts):
 
----
+### 1. `GameEntity`
+The canonical in-memory representation of any sandwich entity (both the current champion and the challenger):
 
-### 2. `GameEntity` (Normalized Concept)
-- **Status:** `PROPOSED (Required for MVP)`
-- **Purpose:** Canonical representation of an object, being, or concept submitted by players.
-- **Fields:**
-  - `id`: UUID (Primary Key)
-  - `canonicalName`: String (e.g., `"Nuclear Warhead"`)
-  - `rawInput`: String (Original player input text)
-  - `category`: String (e.g., `"Weapon"`, `"Cosmic"`, `"Concept"`)
-  - `domain`: String (e.g., `"Physical"`, `"Abstract"`)
-  - `attributesJson`: JSONB (Scale, power estimates, comedic traits)
-  - `imageId`: UUID (Nullable Foreign Key → `GeneratedImage`)
-  - `createdAt`: Timestamp
-- **Relationships:**
-  - Belongs to zero or one `GeneratedImage`.
-  - Can participate in many `GameTurn` records as champion or challenger.
+```typescript
+export interface GameEntity {
+  id: string;                                // e.g. "starter-onion" or generated UUID
+  rawInput: string;                          // Original player text (e.g. "a 1994 toyota corolla")
+  canonicalName: string;                     // e.g. "1994 TOYOTA COROLLA SANDWICH"
+  category: "Mundane" | "Vehicle" | "Weapon" | "Cosmic" | "Living" | "Abstract" | "Divine";
+  power: string | number;                    // Formatted power rating (e.g. "24")
+  scaleTier: number;                         // Normalized tier (1 to 100)
+  emoji: string;                             // Entity icon (e.g. "🚗")
+  pixelColor: string;                        // Dominant card theme accent hex
+  sandwichDescription: string;               // How this concept is squished into bread
+  defensesWon: number;                       // Current victory streak as champion
+  imageUrl?: string;                         // Static or generated sandwich visual
+}
+```
 
----
+### 2. `AdjudicationVerdict`
+The structured output produced by Gemini 1.5 Flash (validated by Zod in [`src/lib/engine/schemas.ts`](../src/lib/engine/schemas.ts)):
 
-### 3. `GameTurn` (Turn Record / Clash)
-- **Status:** `PROPOSED (Required for MVP)`
-- **Purpose:** Immutable audit record of a single matchup duel between champion and challenger.
-- **Fields:**
-  - `id`: UUID (Primary Key)
-  - `gameId`: UUID (Foreign Key → `Game`)
-  - `turnIndex`: Integer (Sequential turn index in this game)
-  - `championEntityId`: UUID (Foreign Key → `GameEntity`)
-  - `challengerEntityId`: UUID (Foreign Key → `GameEntity`)
-  - `winner`: Enum (`"champion" | "challenger"`)
-  - `aiJudgementId`: UUID (Foreign Key → `AIJudgement`)
-  - `createdAt`: Timestamp
-- **Relationships:**
-  - Belongs to `Game`.
-  - References champion and challenger `GameEntity`.
-  - Holds one `AIJudgement`.
+```typescript
+export interface AdjudicationVerdict {
+  winner: "champion" | "challenger";
+  confidence: number;                        // 0.00 to 1.00
+  shortHeadline: string;                     // Punchy summary (e.g. "Corolla Flattens the Allium")
+  humorousReason: string;                    // Absurd comedic justification
+  dominantFactor: "scale" | "destruction" | "elemental_counter" | "ironic_absurdity" | "cosmic_supremacy";
+}
+```
+
+### 3. `TurnHistoryRecord`
+Ephemeral history record stored in the client's notebook drawer:
+
+```typescript
+export interface TurnHistoryRecord {
+  turnIndex: number;
+  championName: string;
+  challengerName: string;
+  winner: "champion" | "challenger";
+  headline: string;
+  reason: string;
+  timestamp: number;
+}
+```
 
 ---
 
-### 4. `AIJudgement` (Structured Model Decision)
-- **Status:** `PROPOSED (Required for MVP)`
-- **Purpose:** Captures the structured inference result, confidence, and comedic narrative.
-- **Fields:**
-  - `id`: UUID (Primary Key)
-  - `turnId`: UUID (Foreign Key → `GameTurn`)
-  - `winner`: Enum (`"champion" | "challenger"`)
-  - `confidence`: Decimal (0.00 – 1.00)
-  - `shortHeadline`: String (Punchy clash summary)
-  - `humorousReason`: Text (AI generated justification)
-  - `modelIdentifier`: String (e.g., `"gemini-1.5-pro"`, `"gpt-4o"`)
-  - `promptVersion`: String (Prompt schema tracking)
-  - `rawResponseJson`: JSONB (Full structured response payload)
-  - `createdAt`: Timestamp
-- **Relationships:**
-  - Belongs to one `GameTurn`.
+## 📡 API Contract (`POST /api/challenge`)
 
----
+### Request Payload:
+```json
+{
+  "rawInput": "a black hole with an appetite",
+  "champion": {
+    "id": "starter-onion",
+    "canonicalName": "THE HUMBLE ONION SANDWICH",
+    "sandwichDescription": "Raw red onion slices clamped between toasted sourdough.",
+    "category": "Mundane",
+    "power": "04",
+    "scaleTier": 6,
+    "defensesWon": 0
+  }
+}
+```
 
-### 5. `GeneratedImage` (Visual Sandwich Asset)
-- **Status:** `PROPOSED (Required for MVP)`
-- **Purpose:** Caching and CDN references for sandwich illustrations.
-- **Fields:**
-  - `id`: UUID (Primary Key)
-  - `entityId`: UUID (Foreign Key → `GameEntity`)
-  - `promptText`: Text (Final prompt sent to image generator)
-  - `storageUrl`: String (CDN URL for image file)
-  - `provider`: String (e.g., `"imagen-3"`, `"dall-e-3"`, `"flux"`)
-  - `generationCostUsd`: Decimal (Nullable metric for cost accounting)
-  - `status`: Enum (`"pending" | "ready" | "failed"`)
-  - `createdAt`: Timestamp
-- **Relationships:**
-  - References one `GameEntity`.
-
----
-
-### 6. Speculative Entities (Post-MVP / Under Evaluation)
-
-| Entity Name | Status | Proposed Purpose |
-| :--- | :--- | :--- |
-| `PlayerSession` | `SPECULATIVE` | Track anonymous session IDs or authenticated user streaks. |
-| `GlobalLeaderboard` | `SPECULATIVE` | Track the longest-reigning champion sandwiches across all games. |
-| `MatchupCache` | `SPECULATIVE` | Global lookup table for pre-evaluated entity pairs to bypass LLM calls. |
-| `ModerationLog` | `SPECULATIVE` | Audit trail of rejected inputs and trigger categories. |
+### Response Payload:
+```json
+{
+  "success": true,
+  "winner": "challenger",
+  "isNewChampion": true,
+  "evaluation": {
+    "confidence": 0.98,
+    "shortHeadline": "Event Horizon Consumes the Sourdough",
+    "humorousReason": "The gravitational singularity effortlessly collapses onion cells and toasted sourdough into an infinitely dense cosmic spread.",
+    "dominantFactor": "cosmic_supremacy"
+  },
+  "challenger": {
+    "id": "e4a7b1...",
+    "rawInput": "a black hole with an appetite",
+    "canonicalName": "HUNGRY BLACK HOLE SANDWICH",
+    "category": "Cosmic",
+    "power": "99",
+    "scaleTier": 99,
+    "emoji": "🕳️",
+    "pixelColor": "#1A0933",
+    "sandwichDescription": "Two curving photon spheres squeezing an inescapable gravitational singularity."
+  },
+  "adjudicatorSource": "gemini-live"
+}
+```
 
 ---
 
 ## 🔗 Related Documentation
 
-- Database engine choice: [ARCHITECTURE.md](./ARCHITECTURE.md)
-- Turn resolution logic: [GAME_ENGINE.md](./GAME_ENGINE.md)
-- API endpoint data contracts: [API.md](./API.md)
-- Architectural decisions: [DECISIONS.md](./DECISIONS.md#dec-006)
+- Architectural decisions: [DECISIONS.md](./DECISIONS.md) (DEC-014)
+- System architecture: [ARCHITECTURE.md](./ARCHITECTURE.md)
+- Game engine pipeline: [GAME_ENGINE.md](./GAME_ENGINE.md)
+- Live API spec: [API.md](./API.md)

@@ -7,27 +7,28 @@
 ## 🏗️ High-Level System Architecture
 
 ```text
-                    ┌───────────────┐
-                    │    Browser    │
-                    └───────┬───────┘
-                            │ (HTTPS / JSON)
-                            ▼
-                    ┌───────────────┐
-                    │    Next.js    │ (App Router / Server Actions)
-                    └───────┬───────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-        ┌──────────┐  ┌──────────┐  ┌───────────┐
-        │   Game   │  │  Google  │  │   Image   │
-        │  Engine  │  │  Gemini  │  │  Service  │
-        │ (Hybrid) │  │1.5 Flash │  │  (Async)  │
-        └────┬─────┘  └──────────┘  └───────────┘
-             │
-             ▼
-        ┌──────────┐
-        │   Neon   │ (Serverless PostgreSQL + Drizzle ORM)
-        └──────────┘
+                    ┌─────────────────────────┐
+                    │         Browser         │
+                    │ (React 19 / State Store)│
+                    │  - Current Champion     │
+                    │  - Battle History & Run │
+                    └────────────┬────────────┘
+                                 │ (HTTPS / JSON)
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    Next.js Route API    │
+                    │   (/api/challenge)      │
+                    │  - Input Sanitization   │
+                    │  - Secret Key Custody   │
+                    └────────────┬────────────┘
+                                 │
+                   ┌─────────────┴─────────────┐
+                   ▼                           ▼
+             ┌──────────┐                ┌───────────┐
+             │   Game   │                │  Google   │
+             │  Engine  │                │  Gemini   │
+             │ (Hybrid) │                │ 1.5 Flash │
+             └──────────┘                └───────────┘
 ```
 
 ---
@@ -36,50 +37,38 @@
 
 | Layer | Accepted Choice | Primary Rationale | Reference |
 | :--- | :--- | :--- | :--- |
-| **Frontend Framework** | **Next.js (App Router) + TypeScript** | React ecosystem, server-rendered landing, fast client interactions, co-located API routes. | [DEC-007](./DECISIONS.md#dec-007) |
-| **Backend / API** | **Next.js Server Functions & Route Handlers** | Single unified codebase, fast serverless execution, minimal deployment overhead. | [DEC-007](./DECISIONS.md#dec-007) |
-| **Database** | **Neon Serverless PostgreSQL** | Serverless scale-to-zero, instant database branching, connection pooling, generous free tier. | [DEC-012](./DECISIONS.md#dec-012) |
-| **ORM / Data Access** | **Drizzle ORM** (`@neondatabase/serverless`) | Type-safe, lightweight, zero-dependency overhead, seamless migrations. | [DEC-006](./DECISIONS.md#dec-006) |
-| **AI LLM Inference** | **Google Gemini 1.5 Flash** | Sub-second latency, lowest token cost, strict JSON schema output via `responseSchema`. | [DEC-010](./DECISIONS.md#dec-010) |
-| **Scoring Engine** | **Option C: Hybrid AI + Rule Guardrails** | AI evaluates clash; engine enforces deterministic invariants, tiebreakers, and caching. | [DEC-011](./DECISIONS.md#dec-011) |
-| **Image Pipeline** | **Cache-First + Async Winner Generation** | Instant clash resolution with stylized placeholders; image gen triggered only for new champions. | [DEC-013](./DECISIONS.md#dec-013) |
-| **Asset Storage / CDN** | **Cloudflare R2 / AWS S3** | S3-compatible, zero/low-cost egress for cached sandwich imagery. | [DEC-009](./DECISIONS.md#dec-009) |
+| **Frontend Framework** | **Next.js (App Router) + TypeScript + React 19** | Modern React ecosystem, fast client interactions, co-located edge/serverless route handlers. | [DEC-007](./DECISIONS.md#dec-007) |
+| **Backend / API** | **Next.js Route Handlers (Stateless Proxy)** | Single unified codebase, fast serverless execution, protects server-side `GEMINI_API_KEY`. | [DEC-007](./DECISIONS.md#dec-007) |
+| **State & Persistence** | **Zero-DB (In-Memory React State + LocalStorage)** | Game is a casual one-time session loop. Zero database overhead, zero maintenance, zero cold-starts. | [DEC-014](./DECISIONS.md#dec-014) |
+| **AI LLM Inference** | **Google Gemini 1.5 Flash** | Sub-second latency, lowest token cost, strict JSON schema output via structured schema. | [DEC-010](./DECISIONS.md#dec-010) |
+| **Scoring Engine** | **Option C: Hybrid AI + Rule Guardrails** | AI evaluates clash; engine enforces deterministic invariants, tiebreakers, and offline fallback. | [DEC-011](./DECISIONS.md#dec-011) |
+| **Image Pipeline** | **Curated Visual Assets + Stylized Cards** | Instant clash resolution with dynamic stylized cards and curated visual mappings. | [DEC-013](./DECISIONS.md#dec-013) |
 | **Hosting & Deployment** | **Vercel** | Turnkey Next.js deployment, automatic edge caching, global distribution. | [DEC-007](./DECISIONS.md#dec-007) |
 
 ---
 
-## 🔄 End-to-End Data Flow (Async Winner Flow)
+## 🔄 End-to-End Data Flow (Stateless Flow)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Player
-    participant Browser
-    participant NextServer as Next.js API
+    participant Browser as Browser (React State)
+    participant NextServer as Next.js API (/api/challenge)
     participant AI as Gemini 1.5 Flash
-    participant Img as Image Service (Async)
-    participant DB as Neon PostgreSQL
 
-    Player->>Browser: Types "Nuclear Bomb" & clicks [CLASH]
-    Browser->>NextServer: POST /api/game/:id/challenge { rawInput }
-    NextServer->>NextServer: Sanitize & validate input bounds
-    NextServer->>DB: Fetch Active Champion Entity
-    DB-->>NextServer: Champion: "1994 Toyota Corolla"
+    Player->>Browser: Types "Nuclear Bomb" & clicks [FIGHT]
+    Browser->>NextServer: POST /api/challenge { rawInput, champion }
+    NextServer->>NextServer: Sanitize & validate input bounds (Zod)
     
-    NextServer->>AI: EvaluateMatchup(Corolla, Nuclear Bomb) with JSON Schema
-    AI-->>NextServer: Structured JSON { winner: "challenger", reason: "50 megatons vaporizes chassis..." }
+    NextServer->>AI: EvaluateMatchup(champion, rawInput) with JSON Schema
+    AI-->>NextServer: Structured JSON { winner: "challenger", reason: "50 megatons vaporizes...", challengerProfile }
     
-    NextServer->>NextServer: Engine validates invariants & checks cached pairings
-    NextServer->>DB: Record GameTurn & update currentChampionEntityId
-    DB-->>NextServer: Transaction Committed
+    NextServer->>NextServer: Hybrid engine applies fallback checks & validates bounds
+    NextServer-->>Browser: HTTP 200 { winner: "challenger", evaluation, challenger }
     
-    NextServer-->>Browser: HTTP 200 { winner: "challenger", reason, placeholderCard }
-    Browser->>Player: Animate clash & crown Nuclear Bomb Sandwich!
-    
-    opt Asynchronous Background Visual Generation (Winner Only)
-        NextServer->)Img: Dispatch background sandwich generation for "Nuclear Bomb"
-        Img->)DB: Update GeneratedImage record with CDN URL
-    end
+    Browser->>Browser: Animate clash impact & update champion state in-memory
+    Browser->>Player: Crown Nuclear Bomb Sandwich!
 ```
 
 ---

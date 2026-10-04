@@ -13,14 +13,15 @@
 | **DEC-003** | Universal Sandwich Visual Representation | `ACCEPTED` | 2026-09-28 |
 | **DEC-004** | AI Role: Semantic Interpretation & Matchup Evaluation | `ACCEPTED` | 2026-09-28 |
 | **DEC-005** | Separation of Deterministic Game Engine from AI Output | `ACCEPTED` | 2026-09-28 |
-| **DEC-006** | Persistence Layer: PostgreSQL + Drizzle ORM | `ACCEPTED` | 2026-09-28 |
+| **DEC-006** | Persistence Layer: PostgreSQL + Drizzle ORM | `SUPERSEDED` *(by DEC-014)* | 2026-09-28 |
 | **DEC-007** | Application Framework: Next.js + TypeScript | `ACCEPTED` | 2026-09-28 |
 | **DEC-008** | Rigid JSON Schema Requirement for LLM Output | `ACCEPTED` | 2026-09-28 |
 | **DEC-009** | Image Generation Caching by Canonical Entity | `ACCEPTED` | 2026-09-28 |
 | **DEC-010** | Primary LLM Provider: Google Gemini (Gemini 1.5 Flash) | `ACCEPTED` | 2026-09-28 |
 | **DEC-011** | Matchup Scoring Architecture: Option C (Hybrid AI + Rules) | `ACCEPTED` | 2026-09-28 |
-| **DEC-012** | Database Platform: Neon Serverless PostgreSQL | `ACCEPTED` | 2026-09-28 |
+| **DEC-012** | Database Platform: Neon Serverless PostgreSQL | `SUPERSEDED` *(by DEC-014)* | 2026-09-28 |
 | **DEC-013** | Image Generation Strategy: Async Winner Flow + Placeholders | `ACCEPTED` | 2026-09-28 |
+| **DEC-014** | Zero-DB Architecture (Session-Only / Stateless Proxy) | `ACCEPTED` | 2026-10-04 |
 
 ---
 
@@ -67,10 +68,9 @@
 ---
 
 ### DEC-006: Persistence Layer: PostgreSQL + Drizzle ORM
-- **Status:** `ACCEPTED`
-- **Context:** We need a robust relational model for turn trees and champion history, alongside JSON capability for flexible AI attributes.
-- **Decision:** Standardize on PostgreSQL with Drizzle ORM for type-safe, lightweight database management and schema migrations.
-- **Consequences:** Provides high query performance, schema migration safety, and full TypeScript typing.
+- **Status:** `SUPERSEDED` *(by DEC-014)*
+- **Context:** Initial architectural sketches assumed a persistent relational database was needed for multi-turn history trees and user accounts.
+- **Superseded By:** DEC-014 (Zero-DB Architecture). Casual one-time play loop requires no persistent backend database.
 
 ---
 
@@ -115,10 +115,9 @@
 ---
 
 ### DEC-012: Database Platform: Neon Serverless PostgreSQL
-- **Status:** `ACCEPTED`
-- **Context:** We require serverless scaling, instant database provisioning, connection pooling, and zero-maintenance operations.
-- **Decision:** Use Neon Serverless PostgreSQL paired with Drizzle ORM (`@neondatabase/serverless`).
-- **Consequences:** Scale-to-zero during inactivity, instant schema branching for dev/preview environments, and generous free tier.
+- **Status:** `SUPERSEDED` *(by DEC-014)*
+- **Context:** We evaluated Neon serverless PostgreSQL for instant scaling and branching.
+- **Superseded By:** DEC-014 (Zero-DB Architecture). Maintaining database connections, pooling, migrations, and cold starts is unnecessary operational overhead for a quick session game.
 
 ---
 
@@ -127,6 +126,18 @@
 - **Context:** Waiting 5–8 seconds for image generation before declaring battle results ruins fast-paced gameplay and exhausts API credits on defeated one-off inputs.
 - **Decision:** Battles resolve immediately (<1s) using stylized culinary card placeholders. Full photorealistic image generation is triggered asynchronously for victors that claim the championship, and permanently cached.
 - **Consequences:** Gameplay stays lightning fast; image API costs drop by 60–80% because defeated spam inputs never trigger generation.
+
+---
+
+### DEC-014: Zero-DB Architecture (Session-Only / Stateless Proxy)
+- **Status:** `ACCEPTED`
+- **Date:** 2026-10-04
+- **Context:** Idiot Sandwich is a fast, casual, one-time play session game ("play and done"). No player wants or needs long-term server-side account management or relational history trees. Running and maintaining a persistent PostgreSQL database (or any DB) introduces unnecessary complexity, operational maintenance, cold starts, and potential hosting costs.
+- **Decision:** Adopt a **100% Zero-DB architecture**:
+  1. The client maintains all game progression, turn counts, streaks, and duel histories in React state (`useState`), with optional local persistence (`sessionStorage`/`localStorage`).
+  2. The server backend (`POST /api/challenge`) operates as a completely stateless edge/serverless proxy whose sole responsibility is input sanitization, API credential protection (`GEMINI_API_KEY`), and structured Gemini LLM evaluation.
+  3. No database packages (ORM, PostgreSQL driver, migration scripts) will be installed or maintained.
+- **Consequences:** Zero database maintenance, zero connection pooling issues, zero migration drift, zero database cost ($0.00/mo), and instant deployment simplicity.
 
 ---
 

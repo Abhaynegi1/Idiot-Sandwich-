@@ -17,7 +17,7 @@ This is an experimental, fast-paced indie web game. Development workflows should
 ### Proposed Stack Tooling
 - **Node.js:** `>= 20.x LTS`
 - **Package Manager:** `pnpm` or `npm`
-- **Database:** Local PostgreSQL instance or cloud serverless Postgres (e.g., Neon / Supabase)
+- **AI Credentials:** Google AI Studio Gemini API Key
 
 ### Typical Setup Flow
 ```bash
@@ -25,29 +25,27 @@ This is an experimental, fast-paced indie web game. Development workflows should
 git clone https://github.com/example/idiot-sandwich.git
 cd idiot-sandwich
 
-# Install dependencies (Phase 0.003+)
+# Install dependencies
 npm install
 
 # Copy environment template
 cp .env.example .env.local
 
-# Run database migrations
-npm run db:push
-
-# Start development server
+# Add your GEMINI_API_KEY in .env.local, then start dev server:
 npm run dev
 ```
 
 ---
 
-## 🔑 Environment Variables Specification (Proposed)
+## 🔑 Environment Variables Specification
 
 ```env
 # Application
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/idiot_sandwich"
+# AI Inference (Google Gemini)
+GEMINI_API_KEY="your-gemini-api-key"
+GEMINI_MODEL="gemini-1.5-flash"
 
 # AI Inference Services
 AI_API_KEY="your-llm-provider-key"
@@ -72,15 +70,13 @@ STORAGE_SECRET_KEY="your-storage-secret-key"
 ├── docs/                # Architectural & design documentation
 ├── src/
 │   ├── app/             # Next.js App Router (pages & route handlers)
-│   │   ├── api/         # Backend API routes (/api/game/...)
-│   │   └── page.tsx     # Main arena battle view
+│   │   ├── api/         # Stateless route handlers (/api/challenge)
+│   │   └── page.tsx     # Main arena battle view & session state
 │   ├── components/      # React UI components (SandwichCard, ClashArena, etc.)
 │   ├── lib/
-│   │   ├── ai/          # LLM prompt builders, schemas, and API clients
-│   │   ├── engine/      # Deterministic game rules, normalization, validation
-│   │   ├── images/      # Image generation wrappers and CDN uploaders
-│   │   └── db/          # Drizzle schema definitions and DB client
-│   └── types/           # Shared TypeScript interfaces and Zod schemas
+│   │   ├── engine/      # Adjudication engine, schemas, normalization
+│   │   └── security/    # Sanitization, length limits, moderation
+│   └── types/           # Shared TypeScript interfaces
 └── package.json
 ```
 

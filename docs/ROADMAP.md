@@ -40,8 +40,7 @@ gantt
 - **Outcomes:**
   - Standardized on **Google Gemini 1.5 Flash** for low-latency structured JSON evaluation ([DEC-010](./DECISIONS.md#dec-010)).
   - Adopted **Option C: Hybrid AI + Rule Guardrails** for matchup resolution ([DEC-011](./DECISIONS.md#dec-011)).
-  - Adopted **Cache-First + Async Winner Generation** with stylized placeholders ([DEC-013](./DECISIONS.md#dec-013)).
-  - Standardized on **Neon Serverless PostgreSQL + Drizzle ORM** ([DEC-012](./DECISIONS.md#dec-012)).
+  - Adopted **Zero-DB Architecture** ([DEC-014](./DECISIONS.md#dec-014)): Ephemeral in-memory session progression with zero database overhead.
   - Confirmed **Next.js (App Router) + TypeScript** stack ([DEC-007](./DECISIONS.md#dec-007)).
 
 ---
@@ -89,12 +88,12 @@ gantt
 
 ---
 
-### Phase 0.4 — Database Persistence & Session History
-- **Objective:** Persist games, turns, and champion lineages to Neon PostgreSQL.
+### Phase 0.4 — Session Durability & Shareable Cards (Zero-DB)
+- **Objective:** Enhance client session durability and shareable victory cards without database infrastructure.
 - **Key Tasks:**
-  - Deploy PostgreSQL database and Drizzle ORM schema migrations.
-  - Implement `/api/game` and `/api/game/:id/challenge` endpoints.
-  - Enable persistent shareable game links and global lineage reels.
+  - Optional `localStorage` backup so active runs survive accidental page refreshes.
+  - Dynamic shareable duel summary cards (e.g. downloadable canvas snippet or social clipboard text) for instant bragging.
+  - "New Run" restart button and session replay review.
 
 ---
 
