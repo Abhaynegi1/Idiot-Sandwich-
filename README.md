@@ -6,8 +6,6 @@ An absurd, AI-assisted competitive object game where anything can be challenged,
   <img src="https://media1.tenor.com/m/p98d_YNK3K8AAAAC/gordon-ramsay-idiot-sandwich.gif" alt="Gordon Ramsay Idiot Sandwich" width="480" />
 </p>
 
-<div class="tenor-gif-embed" data-postid="4169547" data-share-method="host" data-aspect-ratio="1.78571" data-width="100%"><a href="https://tenor.com/view/gordon-ramsay-idiot-sandwich-angry-mad-what-are-you-gif-4169547">Idiot Sandwich GIF</a>from <a href="https://tenor.com/search/gordon+ramsay-gifs">Gordon Ramsay GIFs</a></div> <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
-
 ---
 
 ## 🎮 How It Works
