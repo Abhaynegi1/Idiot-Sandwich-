@@ -4,7 +4,6 @@ import React from "react";
 import {
   DoodlePaperAirplane,
   DoodleCoffeeCup,
-  DoodleSwirl,
   DoodleBulb,
 } from "./doodle-icons";
 

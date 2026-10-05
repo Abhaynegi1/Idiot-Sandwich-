@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { GameEntity, TurnHistoryRecord } from "@/types/game";
 
 interface SandwichCardModalProps {
@@ -69,6 +69,246 @@ function getSandwichSvgString(entity: GameEntity): string {
   </svg>`;
 }
 
+// Draw the high-res 1200x1600 (2x scale for 600x800) notebook card
+async function renderSandwichCard(
+  champion: GameEntity,
+  roundNumber: number,
+  history: TurnHistoryRecord[]
+): Promise<string> {
+  const canvas = document.createElement("canvas");
+  const width = 600;
+  const height = 800;
+  const scale = 2; // Retina 2x export
+
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  ctx.scale(scale, scale);
+
+  // 1. Paper Background (#F7F4EA)
+  ctx.fillStyle = "#F7F4EA";
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. Faint Dot Grid Texture
+  ctx.fillStyle = "rgba(23, 23, 23, 0.04)";
+  for (let x = 20; x < width; x += 22) {
+    for (let y = 20; y < height; y += 22) {
+      ctx.beginPath();
+      ctx.arc(x, y, 0.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 3. Notebook Margin Rule (Red vertical line)
+  ctx.strokeStyle = "rgba(220, 80, 80, 0.28)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(50, 0);
+  ctx.lineTo(50, height);
+  ctx.stroke();
+
+  // 4. Card Outer Inky Frame with Shadow
+  // Shadow
+  ctx.fillStyle = "rgba(23, 23, 23, 0.12)";
+  ctx.fillRect(19, 19, width - 30, height - 30);
+
+  // White paper card body
+  ctx.fillStyle = "#FFFDF8";
+  ctx.fillRect(15, 15, width - 30, height - 30);
+
+  // Inky Outline
+  ctx.strokeStyle = "#171717";
+  ctx.lineWidth = 2.75;
+  ctx.strokeRect(15, 15, width - 30, height - 30);
+
+  // Inner dashed guide line
+  ctx.strokeStyle = "rgba(23, 23, 23, 0.22)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeRect(23, 23, width - 46, height - 46);
+  ctx.setLineDash([]); // Reset dash
+
+  // 5. Header: "IDIOT SANDWICH" + Pill Badge
+  ctx.fillStyle = "#171717";
+  ctx.font = "bold 26px 'Patrick Hand', cursive, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("IDIOT SANDWICH 🥪", 42, 60);
+
+  ctx.font = "14px 'Patrick Hand', sans-serif";
+  ctx.fillStyle = "rgba(23, 23, 23, 0.6)";
+  ctx.fillText("COLLECTIBLE CHAMPION CARD", 42, 80);
+
+  // Round badge
+  const badgeText = `ROUND ${roundNumber.toString().padStart(2, "0")}`;
+  ctx.fillStyle = "#F2C94C";
+  ctx.fillRect(width - 165, 42, 125, 34);
+  ctx.strokeStyle = "#171717";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(width - 165, 42, 125, 34);
+
+  ctx.fillStyle = "#171717";
+  ctx.font = "bold 15px 'JetBrains Mono', monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(badgeText, width - 102, 64);
+
+  // 6. Crown Doodle above sandwich
+  ctx.fillStyle = "#F2C94C";
+  ctx.strokeStyle = "#171717";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(280, 114);
+  ctx.lineTo(285, 100);
+  ctx.lineTo(294, 107);
+  ctx.lineTo(300, 94);
+  ctx.lineTo(306, 107);
+  ctx.lineTo(315, 100);
+  ctx.lineTo(320, 114);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // "— CURRENT CHAMPION —"
+  ctx.font = "bold 16px 'Patrick Hand', cursive, sans-serif";
+  ctx.fillStyle = "#171717";
+  ctx.fillText("— CURRENT CHAMPION —", 300, 134);
+
+  // 7. Load & Render Sandwich SVG
+  const svgStr = getSandwichSvgString(champion);
+  const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgStr)}`;
+  const img = new Image();
+
+  await new Promise<void>((resolve) => {
+    img.onload = () => {
+      // Draw sandwich centered at (160, 138)
+      ctx.drawImage(img, 160, 138, 280, 206);
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = svgUrl;
+  });
+
+  // 8. Champion Name (Auto-scaled)
+  ctx.fillStyle = "#171717";
+  let nameFontSize = 28;
+  if (champion.canonicalName.length > 24) nameFontSize = 22;
+  if (champion.canonicalName.length > 32) nameFontSize = 19;
+  ctx.font = `900 ${nameFontSize}px 'Patrick Hand', cursive, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.fillText(champion.canonicalName, 300, 375);
+
+  // 9. Stats Bar
+  ctx.fillStyle = "rgba(23, 23, 23, 0.06)";
+  ctx.fillRect(45, 395, width - 90, 40);
+  ctx.strokeStyle = "#171717";
+  ctx.lineWidth = 1.8;
+  ctx.strokeRect(45, 395, width - 90, 40);
+
+  ctx.font = "bold 15px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "#171717";
+  const defensesCount = champion.defensesWon || 0;
+  ctx.fillText(
+    `⚡ POWER: ${champion.power}   |   🛡️ DEFENSES: ${defensesCount}   |   ${champion.category.toUpperCase()}`,
+    300,
+    420
+  );
+
+  // 10. Description Quote Box
+  ctx.fillStyle = "#F7F4EA";
+  ctx.fillRect(45, 450, width - 90, 68);
+  ctx.strokeStyle = "rgba(23, 23, 23, 0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(45, 450, width - 90, 68);
+
+  ctx.font = "italic 16px 'Patrick Hand', cursive, sans-serif";
+  ctx.fillStyle = "#4A4742";
+  const desc = `"${champion.sandwichDescription}"`;
+  // Split into 2 lines if needed
+  if (desc.length > 60) {
+    const mid = desc.lastIndexOf(" ", 56);
+    ctx.fillText(desc.slice(0, mid), 300, 477);
+    ctx.fillText(desc.slice(mid + 1), 300, 500);
+  } else {
+    ctx.fillText(desc, 300, 490);
+  }
+
+  // 11. Battle History Box
+  ctx.fillStyle = "#FFFDF8";
+  ctx.fillRect(45, 532, width - 90, 142);
+  ctx.strokeStyle = "#171717";
+  ctx.lineWidth = 1.75;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(45, 532, width - 90, 142);
+  ctx.setLineDash([]);
+
+  ctx.font = "bold 15px 'Patrick Hand', cursive, sans-serif";
+  ctx.fillStyle = "#171717";
+  ctx.textAlign = "left";
+  ctx.fillText("📜 BATTLE RECORD / HIGHLIGHTS:", 60, 556);
+
+  const recentDuels = history.slice(0, 3);
+  if (recentDuels.length > 0) {
+    ctx.font = "14px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "rgba(23, 23, 23, 0.85)";
+    recentDuels.forEach((duel, idx) => {
+      const yPos = 582 + idx * 26;
+      const icon = duel.winner === "challenger" ? "👑 Won:" : "🛡️ Defended:";
+      const rawLine = `${icon} ${duel.challengerName} (${duel.headline.slice(0, 40)}...)`;
+      ctx.fillText(rawLine, 65, yPos);
+    });
+  } else {
+    ctx.font = "italic 15px 'Patrick Hand', sans-serif";
+    ctx.fillStyle = "rgba(23, 23, 23, 0.6)";
+    ctx.fillText("• Undefeated reigning champion on a fresh run.", 65, 595);
+    ctx.fillText("• Waiting for a brave challenger in the kitchen arena.", 65, 622);
+  }
+
+  // 12. Bottom Red Official Seal (Gordon Ramsay Meme Seal)
+  ctx.save();
+  ctx.translate(width - 110, 715);
+  ctx.rotate((-12 * Math.PI) / 180);
+  ctx.strokeStyle = "#D32F2F";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(0, 0, 42, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(0, 0, 37, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.font = "bold 9px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "#D32F2F";
+  ctx.textAlign = "center";
+  ctx.fillText("★ CERTIFIED ★", 0, -18);
+  ctx.font = "bold 12px 'Patrick Hand', sans-serif";
+  ctx.fillText("IDIOT", 0, -3);
+  ctx.fillText("SANDWICH", 0, 10);
+  ctx.font = "8px 'JetBrains Mono', monospace";
+  ctx.fillText("CHEF GORDON", 0, 24);
+  ctx.restore();
+
+  // 13. Footer Link & Corner Scribbles
+  ctx.textAlign = "left";
+  ctx.font = "13px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "rgba(23, 23, 23, 0.7)";
+  ctx.fillText("Can you beat this? Play at:", 45, 710);
+  ctx.font = "bold 14px 'Patrick Hand', sans-serif";
+  ctx.fillStyle = "#171717";
+  ctx.fillText("github.com/Abhaynegi1/Idiot-Sandwich-", 45, 730);
+
+  // Corner Cat Doodle (Bottom-left margin)
+  ctx.font = "bold 12px 'Patrick Hand', sans-serif";
+  ctx.fillStyle = "rgba(23, 23, 23, 0.55)";
+  ctx.fillText("bro...", 52, 755);
+
+  // Export Data URL
+  return canvas.toDataURL("image/png");
+}
+
 export function SandwichCardModal({
   isOpen,
   onClose,
@@ -77,254 +317,27 @@ export function SandwichCardModal({
   history,
   onToast,
 }: SandwichCardModalProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState<boolean>(true);
-
-  // Draw the high-res 1200x1600 (2x scale for 600x800) notebook card
-  const generateCard = useCallback(async () => {
-    setIsGenerating(true);
-    const canvas = document.createElement("canvas");
-    const width = 600;
-    const height = 800;
-    const scale = 2; // Retina 2x export
-
-    canvas.width = width * scale;
-    canvas.height = height * scale;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.scale(scale, scale);
-
-    // 1. Paper Background (#F7F4EA)
-    ctx.fillStyle = "#F7F4EA";
-    ctx.fillRect(0, 0, width, height);
-
-    // 2. Faint Dot Grid Texture
-    ctx.fillStyle = "rgba(23, 23, 23, 0.04)";
-    for (let x = 20; x < width; x += 22) {
-      for (let y = 20; y < height; y += 22) {
-        ctx.beginPath();
-        ctx.arc(x, y, 0.8, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // 3. Notebook Margin Rule (Red vertical line)
-    ctx.strokeStyle = "rgba(220, 80, 80, 0.28)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(50, 0);
-    ctx.lineTo(50, height);
-    ctx.stroke();
-
-    // 4. Card Outer Inky Frame with Shadow
-    // Shadow
-    ctx.fillStyle = "rgba(23, 23, 23, 0.12)";
-    ctx.fillRect(19, 19, width - 30, height - 30);
-
-    // White paper card body
-    ctx.fillStyle = "#FFFDF8";
-    ctx.fillRect(15, 15, width - 30, height - 30);
-
-    // Inky Outline
-    ctx.strokeStyle = "#171717";
-    ctx.lineWidth = 2.75;
-    ctx.strokeRect(15, 15, width - 30, height - 30);
-
-    // Inner dashed guide line
-    ctx.strokeStyle = "rgba(23, 23, 23, 0.22)";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5, 4]);
-    ctx.strokeRect(23, 23, width - 46, height - 46);
-    ctx.setLineDash([]); // Reset dash
-
-    // 5. Header: "IDIOT SANDWICH" + Pill Badge
-    ctx.fillStyle = "#171717";
-    ctx.font = "bold 26px 'Patrick Hand', cursive, sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("IDIOT SANDWICH 🥪", 42, 60);
-
-    ctx.font = "14px 'Patrick Hand', sans-serif";
-    ctx.fillStyle = "rgba(23, 23, 23, 0.6)";
-    ctx.fillText("COLLECTIBLE CHAMPION CARD", 42, 80);
-
-    // Round badge
-    const badgeText = `ROUND ${roundNumber.toString().padStart(2, "0")}`;
-    ctx.fillStyle = "#F2C94C";
-    ctx.fillRect(width - 165, 42, 125, 34);
-    ctx.strokeStyle = "#171717";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(width - 165, 42, 125, 34);
-
-    ctx.fillStyle = "#171717";
-    ctx.font = "bold 15px 'JetBrains Mono', monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(badgeText, width - 102, 64);
-
-    // 6. Crown Doodle above sandwich
-    ctx.fillStyle = "#F2C94C";
-    ctx.strokeStyle = "#171717";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(280, 114);
-    ctx.lineTo(285, 100);
-    ctx.lineTo(294, 107);
-    ctx.lineTo(300, 94);
-    ctx.lineTo(306, 107);
-    ctx.lineTo(315, 100);
-    ctx.lineTo(320, 114);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // "— CURRENT CHAMPION —"
-    ctx.font = "bold 16px 'Patrick Hand', cursive, sans-serif";
-    ctx.fillStyle = "#171717";
-    ctx.fillText("— CURRENT CHAMPION —", 300, 134);
-
-    // 7. Load & Render Sandwich SVG
-    const svgStr = getSandwichSvgString(champion);
-    const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgStr)}`;
-    const img = new Image();
-
-    await new Promise<void>((resolve) => {
-      img.onload = () => {
-        // Draw sandwich centered at (160, 138)
-        ctx.drawImage(img, 160, 138, 280, 206);
-        resolve();
-      };
-      img.onerror = () => resolve();
-      img.src = svgUrl;
-    });
-
-    // 8. Champion Name (Auto-scaled)
-    ctx.fillStyle = "#171717";
-    let nameFontSize = 28;
-    if (champion.canonicalName.length > 24) nameFontSize = 22;
-    if (champion.canonicalName.length > 32) nameFontSize = 19;
-    ctx.font = `900 ${nameFontSize}px 'Patrick Hand', cursive, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.fillText(champion.canonicalName, 300, 375);
-
-    // 9. Stats Bar
-    ctx.fillStyle = "rgba(23, 23, 23, 0.06)";
-    ctx.fillRect(45, 395, width - 90, 40);
-    ctx.strokeStyle = "#171717";
-    ctx.lineWidth = 1.8;
-    ctx.strokeRect(45, 395, width - 90, 40);
-
-    ctx.font = "bold 15px 'JetBrains Mono', monospace";
-    ctx.fillStyle = "#171717";
-    const defensesCount = champion.defensesWon || 0;
-    ctx.fillText(
-      `⚡ POWER: ${champion.power}   |   🛡️ DEFENSES: ${defensesCount}   |   ${champion.category.toUpperCase()}`,
-      300,
-      420
-    );
-
-    // 10. Description Quote Box
-    ctx.fillStyle = "#F7F4EA";
-    ctx.fillRect(45, 450, width - 90, 68);
-    ctx.strokeStyle = "rgba(23, 23, 23, 0.4)";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(45, 450, width - 90, 68);
-
-    ctx.font = "italic 16px 'Patrick Hand', cursive, sans-serif";
-    ctx.fillStyle = "#4A4742";
-    const desc = `"${champion.sandwichDescription}"`;
-    // Split into 2 lines if needed
-    if (desc.length > 60) {
-      const mid = desc.lastIndexOf(" ", 56);
-      ctx.fillText(desc.slice(0, mid), 300, 477);
-      ctx.fillText(desc.slice(mid + 1), 300, 500);
-    } else {
-      ctx.fillText(desc, 300, 490);
-    }
-
-    // 11. Battle History Box
-    ctx.fillStyle = "#FFFDF8";
-    ctx.fillRect(45, 532, width - 90, 142);
-    ctx.strokeStyle = "#171717";
-    ctx.lineWidth = 1.75;
-    ctx.setLineDash([4, 4]);
-    ctx.strokeRect(45, 532, width - 90, 142);
-    ctx.setLineDash([]);
-
-    ctx.font = "bold 15px 'Patrick Hand', cursive, sans-serif";
-    ctx.fillStyle = "#171717";
-    ctx.textAlign = "left";
-    ctx.fillText("📜 BATTLE RECORD / HIGHLIGHTS:", 60, 556);
-
-    const recentDuels = history.slice(0, 3);
-    if (recentDuels.length > 0) {
-      ctx.font = "14px 'JetBrains Mono', monospace";
-      ctx.fillStyle = "rgba(23, 23, 23, 0.85)";
-      recentDuels.forEach((duel, idx) => {
-        const yPos = 582 + idx * 26;
-        const icon = duel.winner === "challenger" ? "👑 Won:" : "🛡️ Defended:";
-        const rawLine = `${icon} ${duel.challengerName} (${duel.headline.slice(0, 40)}...)`;
-        ctx.fillText(rawLine, 65, yPos);
-      });
-    } else {
-      ctx.font = "italic 15px 'Patrick Hand', sans-serif";
-      ctx.fillStyle = "rgba(23, 23, 23, 0.6)";
-      ctx.fillText("• Undefeated reigning champion on a fresh run.", 65, 595);
-      ctx.fillText("• Waiting for a brave challenger in the kitchen arena.", 65, 622);
-    }
-
-    // 12. Bottom Red Official Seal (Gordon Ramsay Meme Seal)
-    ctx.save();
-    ctx.translate(width - 110, 715);
-    ctx.rotate((-12 * Math.PI) / 180);
-    ctx.strokeStyle = "#D32F2F";
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.arc(0, 0, 42, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(0, 0, 37, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.font = "bold 9px 'JetBrains Mono', monospace";
-    ctx.fillStyle = "#D32F2F";
-    ctx.textAlign = "center";
-    ctx.fillText("★ CERTIFIED ★", 0, -18);
-    ctx.font = "bold 12px 'Patrick Hand', sans-serif";
-    ctx.fillText("IDIOT", 0, -3);
-    ctx.fillText("SANDWICH", 0, 10);
-    ctx.font = "8px 'JetBrains Mono', monospace";
-    ctx.fillText("CHEF GORDON", 0, 24);
-    ctx.restore();
-
-    // 13. Footer Link & Corner Scribbles
-    ctx.textAlign = "left";
-    ctx.font = "13px 'JetBrains Mono', monospace";
-    ctx.fillStyle = "rgba(23, 23, 23, 0.7)";
-    ctx.fillText("Can you beat this? Play at:", 45, 710);
-    ctx.font = "bold 14px 'Patrick Hand', sans-serif";
-    ctx.fillStyle = "#171717";
-    ctx.fillText("github.com/Abhaynegi1/Idiot-Sandwich-", 45, 730);
-
-    // Corner Cat Doodle (Bottom-left margin)
-    ctx.font = "bold 12px 'Patrick Hand', sans-serif";
-    ctx.fillStyle = "rgba(23, 23, 23, 0.55)";
-    ctx.fillText("bro...", 52, 755);
-
-    // Export Data URL
-    const url = canvas.toDataURL("image/png");
-    setDataUrl(url);
-    setIsGenerating(false);
-  }, [champion, roundNumber, history]);
 
   useEffect(() => {
-    if (isOpen) {
-      generateCard();
-    }
-  }, [isOpen, generateCard]);
+    if (!isOpen) return;
+
+    let isMounted = true;
+    const timer = setTimeout(() => {
+      renderSandwichCard(champion, roundNumber, history).then((url) => {
+        if (isMounted) {
+          setDataUrl(url);
+        }
+      });
+    }, 10);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [isOpen, champion, roundNumber, history]);
+
+  const isGenerating = !dataUrl;
 
   // Download PNG file directly
   const handleDownload = () => {

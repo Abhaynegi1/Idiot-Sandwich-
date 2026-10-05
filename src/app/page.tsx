@@ -6,14 +6,8 @@ import Link from "next/link";
 import { GameEntity, AdjudicationVerdict, TurnHistoryRecord } from "@/types/game";
 import { normalizeEntity, adjudicateDuel } from "@/lib/engine/mock-adjudicator";
 import {
-  DoodlePaperAirplane,
-  DoodleCoffeeCup,
-  DoodleSwirl,
-  DoodleCloud,
-  DoodleSkullMini,
   DoodleCurledArrow,
   DoodleSparkleCluster,
-  DoodleBombWithFuse,
 } from "@/components/doodle-icons";
 import { NotebookMessyBackground } from "@/components/notebook-doodles";
 import { SandwichCardModal } from "@/components/sandwich-card-modal";
