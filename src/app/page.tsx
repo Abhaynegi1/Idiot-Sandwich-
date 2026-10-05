@@ -5,6 +5,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { GameEntity, AdjudicationVerdict, TurnHistoryRecord } from "@/types/game";
 import { normalizeEntity, adjudicateDuel } from "@/lib/engine/mock-adjudicator";
+import {
+  DoodlePaperAirplane,
+  DoodleCoffeeCup,
+  DoodleSwirl,
+  DoodleCloud,
+  DoodleSkullMini,
+  DoodleCurledArrow,
+  DoodleSparkleCluster,
+  DoodleBombWithFuse,
+} from "@/components/doodle-icons";
+import { NotebookMessyBackground } from "@/components/notebook-doodles";
 
 const STARTER_CHAMPION: GameEntity = {
   id: "starter-onion",
@@ -301,95 +312,11 @@ export default function Home() {
         maxWidth: "840px",
         margin: "0 auto",
         position: "relative",
+        zIndex: 1,
       }}
     >
-      {/* ================= EDGE DOODLES (Restrained: 3 Desktop Doodles) ================= */}
-      
-      {/* Doodle 1: Tiny UFO in top-right margin */}
-      <aside
-        aria-hidden="true"
-        className="desktop-doodle"
-        style={{
-          position: "fixed",
-          top: "clamp(24px, 5vh, 50px)",
-          right: "clamp(24px, 5vw, 60px)",
-          pointerEvents: "none",
-          opacity: 0.75,
-          transform: "rotate(6deg)",
-        }}
-      >
-        <svg width="44" height="38" viewBox="0 0 44 38" fill="none">
-          <polygon points="17,16 5,36 39,36 27,16" fill="#F2C94C" opacity="0.3" />
-          <path d="M16 12 C16 7, 28 7, 28 12" stroke="#171717" strokeWidth="1.75" strokeLinecap="round" />
-          <ellipse cx="22" cy="13" rx="14" ry="4.5" stroke="#171717" strokeWidth="1.75" fill="#F7F4EA" />
-          <circle cx="16" cy="13.5" r="1" fill="#171717" />
-          <circle cx="22" cy="13.8" r="1" fill="#171717" />
-          <circle cx="28" cy="13.5" r="1" fill="#171717" />
-        </svg>
-      </aside>
-
-      {/* Doodle 2: Tiny sketched cat + "bro..." in bottom-left margin */}
-      <aside
-        aria-hidden="true"
-        className="desktop-doodle"
-        style={{
-          position: "fixed",
-          bottom: "clamp(24px, 5vh, 48px)",
-          left: "clamp(24px, 5vw, 60px)",
-          pointerEvents: "none",
-          opacity: 0.7,
-        }}
-      >
-        <svg width="48" height="42" viewBox="0 0 48 42" fill="none">
-          <path
-            d="M8 32 C8 24, 14 18, 22 18 C30 18, 36 24, 36 32"
-            stroke="#171717"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-          />
-          <path d="M12 20 L10 11 L18 17" stroke="#171717" strokeWidth="1.75" strokeLinejoin="round" />
-          <path d="M26 17 L34 11 L32 20" stroke="#171717" strokeWidth="1.75" strokeLinejoin="round" />
-          <circle cx="17" cy="24" r="1.2" fill="#171717" />
-          <circle cx="27" cy="24" r="1.2" fill="#171717" />
-          <path d="M22 26 L22 28 M20 28 C21 29, 23 29, 24 28" stroke="#171717" strokeWidth="1.2" strokeLinecap="round" />
-          <path d="M9 25 L3 24 M9 27 L4 28 M35 25 L41 24 M35 27 L40 28" stroke="#171717" strokeWidth="1" strokeLinecap="round" />
-        </svg>
-        <div
-          className="font-display"
-          style={{
-            fontSize: "0.85rem",
-            color: "var(--ink-secondary)",
-            marginLeft: "8px",
-            transform: "rotate(-4deg)",
-          }}
-        >
-          bro...
-        </div>
-      </aside>
-
-      {/* Doodle 3: Tiny scribbled star in bottom-right margin */}
-      <aside
-        aria-hidden="true"
-        className="desktop-doodle"
-        style={{
-          position: "fixed",
-          bottom: "clamp(30px, 6vh, 60px)",
-          right: "clamp(24px, 5vw, 60px)",
-          pointerEvents: "none",
-          opacity: 0.6,
-          transform: "rotate(12deg)",
-        }}
-      >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 2 L14.5 8.5 L21 9.5 L16 14 L17.5 21 L12 17.5 L6.5 21 L8 14 L3 9.5 L9.5 8.5 Z"
-            stroke="#171717"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-            fill="none"
-          />
-        </svg>
-      </aside>
+      {/* ================= MESSY NOTEBOOK DOODLES & ROUGH TEXT BACKGROUND ================= */}
+      <NotebookMessyBackground />
 
       {/* ================= 1. TITLE / LOGO & ACTIONS ================= */}
       <header
@@ -444,9 +371,15 @@ export default function Home() {
                 color: "var(--ink-secondary)",
                 marginTop: "3px",
                 letterSpacing: "0.02em",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              type anything.
+              <span>type anything.</span>
+              <svg width="22" height="6" viewBox="0 0 22 6" fill="none" opacity="0.6">
+                <path d="M 1 3 Q 4 0.5 7 3 T 13 3 T 19 3" stroke="#171717" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
             </div>
           </div>
         </div>
@@ -561,14 +494,20 @@ export default function Home() {
             marginBottom: "0.85rem",
             display: "inline-flex",
             alignItems: "center",
-            gap: "6px",
+            gap: "8px",
           }}
         >
+          <span style={{ opacity: 0.7, transform: "rotate(-10deg)" }}>
+            <DoodleSparkleCluster size={18} />
+          </span>
           <span>—</span>
           <span className="highlighter" style={{ fontWeight: 700 }}>
             CURRENT CHAMPION
           </span>
           <span>—</span>
+          <span style={{ opacity: 0.7, transform: "rotate(10deg)" }}>
+            <DoodleSparkleCluster size={18} />
+          </span>
         </div>
 
         {/* ================= LARGE ARTWORK / CLASH ARENA ================= */}
@@ -831,10 +770,15 @@ export default function Home() {
               alignItems: "center",
               flexWrap: "wrap",
               justifyContent: "center",
-              opacity: 0.7,
+              opacity: 0.75,
             }}
           >
-            <span>try:</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              <span style={{ transform: "rotate(-6deg)" }}>
+                <DoodleCurledArrow size={20} />
+              </span>
+              <span>try:</span>
+            </span>
             <ChipText text="a car" onClick={() => setInputValue("a car")} />
             <span>•</span>
             <ChipText text="nuclear bomb" onClick={() => setInputValue("nuclear bomb")} />
@@ -972,27 +916,13 @@ export default function Home() {
         )}
       </main>
 
-      {/* ================= FOOTER (Clean & Empty) ================= */}
+      {/* ================= FOOTER ================= */}
       <footer
         style={{
           width: "100%",
           paddingTop: "0.75rem",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
         }}
-      >
-        <span
-          className="font-display"
-          style={{
-            fontSize: "0.95rem",
-            color: "var(--ink-secondary)",
-            opacity: 0.6,
-          }}
-        >
-          drawn in the back of a notebook
-        </span>
-      </footer>
+      />
 
       {/* Toast Notification */}
       {toastMessage && (

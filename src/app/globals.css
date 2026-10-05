@@ -267,10 +267,14 @@ body::before {
   animation: thinkingPulse 1.4s ease-in-out infinite;
 }
 
-/* Edge doodles hide on mobile */
+/* Notebook messy doodles background layer */
+.notebook-messy-layer {
+  transition: opacity 0.2s ease;
+}
+
 @media (max-width: 860px) {
-  .desktop-doodle {
-    display: none !important;
+  .notebook-messy-layer {
+    opacity: 0.4;
   }
 }
 

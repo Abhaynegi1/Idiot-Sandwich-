@@ -250,3 +250,168 @@ export function MiniBug() {
     </svg>
   );
 }
+
+// 11. Doodle Paper Airplane with dotted loop trail
+export function DoodlePaperAirplane({ size = 46 }: { size?: number }) {
+  return (
+    <svg width={size} height={size * 0.8} viewBox="0 0 50 40" fill="none">
+      <path
+        d="M 6 34 C 14 36, 18 28, 14 22 C 10 16, 4 22, 10 28 C 16 34, 24 30, 30 24"
+        stroke="#171717"
+        strokeWidth="1.3"
+        strokeDasharray="3 3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 46 8 L 24 22 L 32 30 L 46 8 Z"
+        fill="#FFFDF8"
+        stroke="#171717"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 46 8 L 24 22 L 33 22 Z"
+        fill="#F2C94C"
+        opacity="0.3"
+        stroke="#171717"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M 32 30 L 34 25" stroke="#171717" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+// 12. Doodle Coffee Mug with steam
+export function DoodleCoffeeCup({ size = 42 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 44 44" fill="none">
+      <path d="M 16 8 C 15 5, 17 3, 16 1" stroke="#171717" strokeWidth="1.4" strokeLinecap="round" opacity="0.65" />
+      <path d="M 22 7 C 21 4, 23 2, 22 0" stroke="#171717" strokeWidth="1.4" strokeLinecap="round" opacity="0.65" />
+      <path d="M 28 8 C 27 5, 29 3, 28 1" stroke="#171717" strokeWidth="1.4" strokeLinecap="round" opacity="0.65" />
+      <path
+        d="M 11 12 L 13 32 C 13 35, 16 37, 22 37 C 28 37, 31 35, 31 32 L 33 12 Z"
+        fill="#FFFDF8"
+        stroke="#171717"
+        strokeWidth="1.9"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 33 16 C 39 16, 40 26, 32 27"
+        stroke="#171717"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path d="M 17 21 Q 19 23 21 21" stroke="#171717" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M 23 21 Q 25 23 27 21" stroke="#171717" strokeWidth="1.3" strokeLinecap="round" />
+      <ellipse cx="22" cy="26" rx="2" ry="1" fill="#FF8A80" opacity="0.6" />
+      <path d="M 8 38 Q 22 41 36 38" stroke="#171717" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// 13. Doodle Swirl / Spiral scribble
+export function DoodleSwirl({ size = 36 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+      <path
+        d="M 20 20 C 22 18, 24 22, 22 24 C 18 27, 14 22, 17 17 C 21 12, 28 15, 29 21 C 30 29, 21 34, 13 30 C 5 26, 7 14, 15 8 C 24 2, 36 7, 38 18"
+        stroke="#171717"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+// 14. Doodle Cloud with rain dashes
+export function DoodleCloud({ size = 44 }: { size?: number }) {
+  return (
+    <svg width={size} height={size * 0.75} viewBox="0 0 48 36" fill="none">
+      <path
+        d="M 10 24 C 6 24, 4 20, 7 16 C 5 11, 10 7, 15 9 C 18 5, 26 4, 29 8 C 34 6, 39 9, 38 14 C 42 16, 42 22, 38 24 Z"
+        fill="#FFFDF8"
+        stroke="#171717"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M 13 28 L 10 33" stroke="#4A90E2" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M 22 28 L 19 34" stroke="#4A90E2" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M 31 28 L 28 33" stroke="#4A90E2" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// 15. Doodle Skull with crossbones (humorous defeat sketch)
+export function DoodleSkullMini({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+      <path d="M 8 8 L 28 28 M 28 8 L 8 28" stroke="#171717" strokeWidth="2.2" strokeLinecap="round" />
+      <ellipse cx="18" cy="16" rx="9" ry="8" fill="#FFFDF8" stroke="#171717" strokeWidth="2" />
+      <rect x="14" y="21" width="8" height="5" rx="1.5" fill="#FFFDF8" stroke="#171717" strokeWidth="1.8" />
+      <path d="M 13 14 L 16 17 M 16 14 L 13 17" stroke="#171717" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M 20 14 L 23 17 M 23 14 L 20 17" stroke="#171717" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M 16 23 L 16 25 M 20 23 L 20 25" stroke="#171717" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+// 16. Doodle Curled Arrow (pointing scribble)
+export function DoodleCurledArrow({ size = 36 }: { size?: number }) {
+  return (
+    <svg width={size} height={size * 0.75} viewBox="0 0 40 30" fill="none">
+      <path
+        d="M 6 22 C 14 26, 26 24, 32 12"
+        stroke="#171717"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M 26 9 L 33 11 L 34 18"
+        stroke="#171717"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// 17. Doodle Sparkle Cluster
+export function DoodleSparkleCluster({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path
+        d="M 14 3 Q 14 11 6 11 Q 14 11 14 19 Q 14 11 22 11 Q 14 11 14 3 Z"
+        fill="#F2C94C"
+        stroke="#171717"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 25 18 Q 25 23 20 23 Q 25 23 25 28 Q 25 23 30 23 Q 25 23 25 18 Z"
+        fill="#F2C94C"
+        stroke="#171717"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      <path d="M 5 22 L 9 26 M 9 22 L 5 26" stroke="#171717" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// 18. Doodle Bomb with lit fuse
+export function DoodleBombWithFuse({ size = 34 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 36 36" fill="none">
+      <circle cx="16" cy="20" r="11" fill="#FFFDF8" stroke="#171717" strokeWidth="2" />
+      <path d="M 12 15 C 13 14, 15 14, 17 15" stroke="#171717" strokeWidth="1.4" strokeLinecap="round" />
+      <rect x="22" y="10" width="4" height="4" transform="rotate(-30 22 10)" fill="#171717" />
+      <path d="M 25 11 C 28 8, 27 5, 30 3" stroke="#171717" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M 29 1 L 32 3 M 31 0 L 30 4 M 33 1 L 28 3" stroke="#E65100" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}

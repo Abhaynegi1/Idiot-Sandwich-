@@ -673,7 +673,7 @@ export default function HowToPlayPage() {
           paddingTop: "1rem",
         }}
       >
-        drawn in the back of a notebook • inspired by gordon ramsay
+        inspired by gordon ramsay
       </footer>
     </div>
   );
