@@ -101,7 +101,7 @@ export function SoftCurledArrow({ size = 32 }: { size?: number }) {
 }
 
 /* ================= SPREAD-OUT NOTEBOOK DOODLES BACKGROUND ================= */
-/* Distributed across the entire page (margins + inner canvas around center) */
+/* Distributed across the entire page with dynamic scale variation (large, medium, micro) */
 export function NotebookMessyBackground() {
   return (
     <div
@@ -119,28 +119,28 @@ export function NotebookMessyBackground() {
     >
       {/* ================= ZONE 1: UPPER CANVAS (Flanking Logo & Header) ================= */}
 
-      {/* 1. Paper airplane flying diagonally inward from upper left */}
+      {/* 1. [LARGE] Paper airplane swooping diagonally inward from upper left */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(24px, 4vh, 48px)",
-          left: "clamp(20px, 5vw, 90px)",
-          transform: "rotate(-12deg)",
-          opacity: 0.65,
+          top: "clamp(18px, 3.5vh, 42px)",
+          left: "clamp(18px, 4.5vw, 85px)",
+          transform: "rotate(-14deg)",
+          opacity: 0.75,
         }}
       >
-        <DoodlePaperAirplane size={44} />
+        <DoodlePaperAirplane size={72} />
       </div>
 
-      {/* 2. Soft handwritten note closer to header center-left: "sandwich council" */}
+      {/* 2. [SMALL] Soft handwritten note near header: "sandwich council ~" */}
       <div
         className="font-display"
         style={{
           position: "absolute",
-          top: "clamp(30px, 5vh, 65px)",
-          left: "clamp(160px, 22vw, 320px)",
-          fontSize: "clamp(0.85rem, 1.2vw, 1.05rem)",
-          transform: "rotate(6deg)",
+          top: "clamp(26px, 4.5vh, 60px)",
+          left: "clamp(165px, 23vw, 330px)",
+          fontSize: "clamp(0.85rem, 1.15vw, 1.05rem)",
+          transform: "rotate(5deg)",
           opacity: 0.55,
           letterSpacing: "0.04em",
         }}
@@ -151,221 +151,223 @@ export function NotebookMessyBackground() {
         </div>
       </div>
 
-      {/* 3. Tiny UFO hovering in upper right margin */}
+      {/* 3. [MEDIUM-LARGE] UFO hovering in upper right margin */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(20px, 3vh, 42px)",
-          right: "clamp(24px, 5vw, 80px)",
-          transform: "rotate(8deg)",
-          opacity: 0.65,
+          top: "clamp(16px, 3vh, 38px)",
+          right: "clamp(24px, 5vw, 85px)",
+          transform: "rotate(9deg)",
+          opacity: 0.72,
         }}
       >
-        <svg width="42" height="36" viewBox="0 0 44 38" fill="none">
-          <polygon points="17,16 5,36 39,36 27,16" fill="#F2C94C" opacity="0.25" />
+        <svg width="58" height="50" viewBox="0 0 44 38" fill="none">
+          <polygon points="17,16 5,36 39,36 27,16" fill="#F2C94C" opacity="0.3" />
           <path d="M16 12 C16 7, 28 7, 28 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           <ellipse cx="22" cy="13" rx="14" ry="4.5" stroke="currentColor" strokeWidth="1.6" fill="#F7F4EA" />
-          <circle cx="16" cy="13.5" r="1" fill="currentColor" />
-          <circle cx="22" cy="13.8" r="1" fill="currentColor" />
-          <circle cx="28" cy="13.5" r="1" fill="currentColor" />
+          <circle cx="16" cy="13.5" r="1.1" fill="currentColor" />
+          <circle cx="22" cy="13.8" r="1.1" fill="currentColor" />
+          <circle cx="28" cy="13.5" r="1.1" fill="currentColor" />
         </svg>
       </div>
 
-      {/* 4. Pencil star & sparkles near action buttons */}
+      {/* 4. [MICRO] Tiny pencil glint star near action buttons */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(55px, 9vh, 90px)",
-          right: "clamp(140px, 20vw, 290px)",
-          transform: "rotate(-10deg)",
+          top: "clamp(60px, 9vh, 95px)",
+          right: "clamp(150px, 21vw, 300px)",
+          transform: "rotate(-12deg)",
           opacity: 0.5,
         }}
       >
-        <PencilStar size={20} />
+        <PencilStar size={16} />
       </div>
 
       {/* ================= ZONE 2: MID-UPPER CANVAS (Flanking Champion Area) ================= */}
 
-      {/* 5. 3D Isometric Cube floating at intermediate left */}
+      {/* 5. [LARGE] 3D Isometric Cube floating at intermediate left */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(140px, 20vh, 195px)",
-          left: "clamp(70px, 12vw, 175px)",
-          transform: "rotate(14deg)",
-          opacity: 0.6,
+          top: "clamp(130px, 18vh, 185px)",
+          left: "clamp(55px, 10vw, 155px)",
+          transform: "rotate(16deg)",
+          opacity: 0.65,
         }}
       >
-        <IsometricCube size={34} />
+        <IsometricCube size={54} />
       </div>
 
-      {/* 6. Soft "onion + bread = ?" closer toward center champion */}
+      {/* 6. [SMALL] Soft "onion + bread = ?" closer toward center champion */}
       <div
         className="font-display"
         style={{
           position: "absolute",
-          top: "clamp(195px, 27vh, 260px)",
-          left: "clamp(150px, 23vw, 320px)",
-          fontSize: "clamp(0.9rem, 1.25vw, 1.1rem)",
+          top: "clamp(205px, 28vh, 270px)",
+          left: "clamp(140px, 22vw, 310px)",
+          fontSize: "clamp(0.9rem, 1.25vw, 1.15rem)",
           transform: "rotate(-8deg)",
-          opacity: 0.55,
+          opacity: 0.6,
         }}
       >
         <span>🧅 + 🍞 = ???</span>
       </div>
 
-      {/* 7. Classic Cool S graffiti at mid-left */}
+      {/* 7. [XLARGE TALL] Iconic "Cool S" graffiti doodle at mid-left */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(230px, 32vh, 305px)",
-          left: "clamp(24px, 4vw, 65px)",
-          transform: "rotate(-14deg)",
+          top: "clamp(235px, 32vh, 310px)",
+          left: "clamp(20px, 3.8vw, 65px)",
+          transform: "rotate(-16deg)",
+          opacity: 0.75,
+        }}
+      >
+        <CoolS size={52} />
+      </div>
+
+      {/* 8. [MEDIUM] Lightbulb doodle floating intermediate right */}
+      <div
+        style={{
+          position: "absolute",
+          top: "clamp(135px, 19vh, 185px)",
+          right: "clamp(75px, 12vw, 175px)",
+          transform: "rotate(-8deg)",
           opacity: 0.65,
         }}
       >
-        <CoolS size={30} />
+        <DoodleBulb size={38} />
       </div>
 
-      {/* 8. Lightbulb doodle floating intermediate right */}
-      <div
-        style={{
-          position: "absolute",
-          top: "clamp(140px, 20vh, 190px)",
-          right: "clamp(80px, 13vw, 185px)",
-          transform: "rotate(-8deg)",
-          opacity: 0.6,
-        }}
-      >
-        <DoodleBulb size={28} />
-      </div>
-
-      {/* 9. Soft note "defeat: impossible?" flanking champion on the right */}
+      {/* 9. [SMALL] Soft note "level 1 onion • it cannot be stopped" */}
       <div
         className="font-display"
         style={{
           position: "absolute",
-          top: "clamp(200px, 28vh, 270px)",
-          right: "clamp(140px, 21vw, 300px)",
-          fontSize: "clamp(0.85rem, 1.15vw, 1rem)",
+          top: "clamp(195px, 27vh, 265px)",
+          right: "clamp(135px, 20vw, 290px)",
+          fontSize: "clamp(0.85rem, 1.15vw, 1.05rem)",
           transform: "rotate(9deg)",
-          opacity: 0.5,
+          opacity: 0.55,
         }}
       >
         <span>level 1 onion</span>
         <div style={{ fontSize: "0.75rem", opacity: 0.8 }}>it cannot be stopped</div>
       </div>
 
-      {/* 10. Diamond sketch in right mid area */}
+      {/* 10. [MICRO-SMALL] Tiny Diamond sketch in right mid area */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(255px, 36vh, 340px)",
-          right: "clamp(30px, 5vw, 75px)",
-          transform: "rotate(16deg)",
-          opacity: 0.6,
+          top: "clamp(265px, 37vh, 345px)",
+          right: "clamp(28px, 4.5vw, 70px)",
+          transform: "rotate(18deg)",
+          opacity: 0.55,
         }}
       >
-        <PencilDiamond size={30} />
+        <PencilDiamond size={24} />
       </div>
 
       {/* ================= ZONE 3: MID-LOWER CANVAS (Flanking Input & Battle Arena) ================= */}
 
-      {/* 11. Coffee mug with steam at intermediate left */}
+      {/* 11. [LARGE] Generous Coffee Mug with steam + "fuel ☕" */}
       <div
         style={{
           position: "absolute",
-          top: "clamp(350px, 49vh, 440px)",
-          left: "clamp(55px, 9vw, 135px)",
-          transform: "rotate(6deg)",
-          opacity: 0.65,
+          top: "clamp(345px, 48vh, 435px)",
+          left: "clamp(48px, 8.5vw, 130px)",
+          transform: "rotate(5deg)",
+          opacity: 0.7,
           display: "flex",
           alignItems: "center",
-          gap: "6px",
+          gap: "8px",
         }}
       >
-        <DoodleCoffeeCup size={38} />
+        <DoodleCoffeeCup size={50} />
         <span
           className="font-display"
           style={{
-            fontSize: "0.85rem",
+            fontSize: "1.05rem",
             transform: "rotate(-8deg)",
-            opacity: 0.75,
+            opacity: 0.8,
+            fontWeight: 700,
           }}
         >
           fuel ☕
         </span>
       </div>
 
-      {/* 12. Soft curved scribble arrow pointing inward near input on the left */}
+      {/* 12. [MEDIUM] Soft curved scribble arrow pointing inward toward the battle area */}
       <div
         style={{
           position: "absolute",
           top: "clamp(425px, 59vh, 520px)",
           left: "clamp(130px, 19vw, 270px)",
-          transform: "rotate(-20deg)",
-          opacity: 0.5,
+          transform: "rotate(-22deg)",
+          opacity: 0.55,
         }}
       >
-        <SoftCurledArrow size={34} />
+        <SoftCurledArrow size={42} />
       </div>
 
-      {/* 13. Tic-tac-toe sketch at intermediate right */}
+      {/* 13. [MEDIUM-LARGE] Tic-tac-toe sketch at intermediate right */}
       <div
         style={{
           position: "absolute",
           top: "clamp(355px, 50vh, 450px)",
-          right: "clamp(65px, 10vw, 150px)",
-          transform: "rotate(10deg)",
-          opacity: 0.6,
+          right: "clamp(60px, 9.5vw, 145px)",
+          transform: "rotate(11deg)",
+          opacity: 0.65,
         }}
       >
-        <TicTacToe size={36} />
+        <TicTacToe size={46} />
       </div>
 
-      {/* 14. Soft note near input on the right: "what if tuesday??" */}
+      {/* 14. [SMALL] Soft note near input on the right: "what if tuesday?? 💭" */}
       <div
         className="font-display"
         style={{
           position: "absolute",
           top: "clamp(430px, 60vh, 530px)",
-          right: "clamp(130px, 18vw, 260px)",
-          fontSize: "clamp(0.85rem, 1.15vw, 1rem)",
+          right: "clamp(125px, 17.5vw, 255px)",
+          fontSize: "clamp(0.9rem, 1.2vw, 1.1rem)",
           transform: "rotate(-6deg)",
-          opacity: 0.55,
+          opacity: 0.6,
         }}
       >
         <span>what if tuesday?? 💭</span>
       </div>
 
-      {/* 15. The Legendary Debate: "hotdog is a sandwich" crossed out -> NO. */}
+      {/* 15. [PROMINENT BOLD] The Legendary Debate: "hotdog is a sandwich" crossed out -> NO. */}
       <div
         className="font-display"
         style={{
           position: "absolute",
-          top: "clamp(480px, 67vh, 590px)",
-          left: "clamp(26px, 5.5vw, 105px)",
-          fontSize: "clamp(0.95rem, 1.3vw, 1.15rem)",
+          top: "clamp(485px, 68vh, 600px)",
+          left: "clamp(24px, 5vw, 95px)",
+          fontSize: "clamp(1.1rem, 1.7vw, 1.45rem)",
           color: "var(--ink-primary)",
           transform: "rotate(-7deg)",
-          opacity: 0.8,
+          opacity: 0.85,
           whiteSpace: "nowrap",
         }}
       >
-        <span style={{ textDecoration: "line-through", textDecorationThickness: "2px", opacity: 0.65 }}>
+        <span style={{ textDecoration: "line-through", textDecorationThickness: "2.5px", opacity: 0.7 }}>
           hotdog is a sandwich
         </span>
         <span
           style={{
             color: "#D32F2F",
             fontWeight: 800,
-            marginLeft: "8px",
-            fontSize: "1.1em",
-            border: "1.5px solid #D32F2F",
-            borderRadius: "3px",
-            padding: "0px 5px",
-            transform: "rotate(6deg)",
+            marginLeft: "10px",
+            fontSize: "1.2em",
+            border: "2px solid #D32F2F",
+            borderRadius: "4px",
+            padding: "1px 7px",
+            transform: "rotate(7deg)",
             display: "inline-block",
+            boxShadow: "1px 1px 0px rgba(211, 47, 47, 0.4)",
           }}
         >
           NO.
@@ -374,16 +376,16 @@ export function NotebookMessyBackground() {
 
       {/* ================= ZONE 4: BOTTOM CANVAS ================= */}
 
-      {/* 16. Cat sketch + "bro..." in bottom-left */}
+      {/* 16. [MEDIUM] Cat sketch + "bro..." in bottom-left */}
       <div
         style={{
           position: "absolute",
-          bottom: "clamp(24px, 4vh, 45px)",
-          left: "clamp(24px, 5vw, 75px)",
-          opacity: 0.65,
+          bottom: "clamp(22px, 3.8vh, 42px)",
+          left: "clamp(22px, 4.5vw, 70px)",
+          opacity: 0.72,
         }}
       >
-        <svg width="44" height="38" viewBox="0 0 48 42" fill="none">
+        <svg width="54" height="46" viewBox="0 0 48 42" fill="none">
           <path
             d="M8 32 C8 24, 14 18, 22 18 C30 18, 36 24, 36 32"
             stroke="currentColor"
@@ -392,32 +394,33 @@ export function NotebookMessyBackground() {
           />
           <path d="M12 20 L10 11 L18 17" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
           <path d="M26 17 L34 11 L32 20" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-          <circle cx="17" cy="24" r="1.1" fill="currentColor" />
-          <circle cx="27" cy="24" r="1.1" fill="currentColor" />
+          <circle cx="17" cy="24" r="1.2" fill="currentColor" />
+          <circle cx="27" cy="24" r="1.2" fill="currentColor" />
           <path d="M22 26 L22 28 M20 28 C21 29, 23 29, 24 28" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
           <path d="M9 25 L3 24 M9 27 L4 28 M35 25 L41 24 M35 27 L40 28" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
         </svg>
         <div
           className="font-display"
           style={{
-            fontSize: "0.85rem",
+            fontSize: "0.95rem",
             color: "currentColor",
-            marginLeft: "6px",
+            marginLeft: "8px",
             transform: "rotate(-4deg)",
+            fontWeight: 700,
           }}
         >
           bro...
         </div>
       </div>
 
-      {/* 17. Soft hearts floating at bottom center-left */}
+      {/* 17. [MICRO] Soft hearts floating at bottom center-left */}
       <div
         className="font-display"
         style={{
           position: "absolute",
-          bottom: "clamp(30px, 5vh, 60px)",
-          left: "clamp(170px, 25vw, 340px)",
-          fontSize: "1.05rem",
+          bottom: "clamp(28px, 4.5vh, 55px)",
+          left: "clamp(165px, 24vw, 330px)",
+          fontSize: "1.15rem",
           transform: "rotate(14deg)",
           opacity: 0.5,
         }}
@@ -425,14 +428,14 @@ export function NotebookMessyBackground() {
         ♡ ♡
       </div>
 
-      {/* 18. Soft "nom nom ~" floating at bottom center-right */}
+      {/* 18. [SMALL] Soft "nom nom ~" floating at bottom center-right */}
       <div
         className="font-display"
         style={{
           position: "absolute",
-          bottom: "clamp(25px, 4.5vh, 55px)",
-          right: "clamp(150px, 22vw, 300px)",
-          fontSize: "0.95rem",
+          bottom: "clamp(24px, 4vh, 50px)",
+          right: "clamp(145px, 21vw, 290px)",
+          fontSize: "1.05rem",
           transform: "rotate(-10deg)",
           opacity: 0.5,
         }}
@@ -440,17 +443,17 @@ export function NotebookMessyBackground() {
         nom nom ~
       </div>
 
-      {/* 19. Pencil star in bottom-right margin */}
+      {/* 19. [MEDIUM] Pencil star in bottom-right margin */}
       <div
         style={{
           position: "absolute",
-          bottom: "clamp(24px, 4vh, 45px)",
-          right: "clamp(28px, 5vw, 75px)",
+          bottom: "clamp(22px, 3.8vh, 42px)",
+          right: "clamp(26px, 4.8vw, 70px)",
           transform: "rotate(12deg)",
-          opacity: 0.6,
+          opacity: 0.65,
         }}
       >
-        <PencilStar size={26} />
+        <PencilStar size={34} />
       </div>
     </div>
   );
