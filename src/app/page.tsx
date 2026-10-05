@@ -16,6 +16,7 @@ import {
   DoodleBombWithFuse,
 } from "@/components/doodle-icons";
 import { NotebookMessyBackground } from "@/components/notebook-doodles";
+import { SandwichCardModal } from "@/components/sandwich-card-modal";
 
 const STARTER_CHAMPION: GameEntity = {
   id: "starter-onion",
@@ -46,6 +47,7 @@ export default function Home() {
   const [roundNumber, setRoundNumber] = useState<number>(1);
   const [history, setHistory] = useState<TurnHistoryRecord[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [showCardModal, setShowCardModal] = useState<boolean>(false);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
@@ -121,48 +123,8 @@ export default function Home() {
     }, 3200);
   };
 
-  const handleShare = async () => {
-    const highlights = history
-      .slice(0, 3)
-      .map(
-        (h) =>
-          `• ${h.winner === "challenger" ? "👑 Dethroned by" : "🛡️ Crushed"} ${h.challengerName} ${h.challengerEmoji || ""}: "${h.headline}"`
-      )
-      .join("\n");
-
-    const bragText = [
-      `🥪 IDIOT SANDWICH — Round ${roundNumber}`,
-      `👑 Champion: ${champion.canonicalName} ${champion.emoji || ""}`,
-      `⚡ Power: ${champion.power} | Defenses: ${champion.defensesWon}`,
-      highlights ? `\n📜 Highlights:\n${highlights}` : "",
-      `\nCan you make a sandwich that beats this?`,
-      typeof window !== "undefined" ? window.location.origin : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title: "Idiot Sandwich Run",
-          text: bragText,
-          url: window.location.href,
-        });
-        showToast("Shared sandwich brag!");
-        return;
-      } catch (err: unknown) {
-        if ((err as Error)?.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(bragText);
-      showToast("📋 Copied run brag to clipboard!");
-    } catch {
-      showToast("Failed to copy run.");
-    }
+  const handleShare = () => {
+    setShowCardModal(true);
   };
 
   const handleReset = () => {
@@ -406,9 +368,19 @@ export default function Home() {
 
           <button
             type="button"
+            onClick={() => setShowCardModal(true)}
+            className="secondary-btn"
+            title="Download collectible sandwich brag card"
+            style={{ backgroundColor: "var(--accent-yellow-light)" }}
+          >
+            📸 Card
+          </button>
+
+          <button
+            type="button"
             onClick={handleShare}
             className="secondary-btn"
-            title="Copy run summary to share"
+            title="Share run card or copy brag text"
           >
             📋 Share
           </button>
@@ -649,6 +621,22 @@ export default function Home() {
                 >
                   &quot;{duelState.verdict.humorousReason || "yeah... that was inevitable."}&quot;
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setShowCardModal(true)}
+                  className="secondary-btn"
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "0.95rem",
+                    padding: "3px 10px",
+                    backgroundColor: "var(--accent-yellow-light)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                  }}
+                >
+                  <span>📸</span> Export Champion Card
+                </button>
               </div>
             ) : (
               <div>
@@ -930,6 +918,16 @@ export default function Home() {
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Downloadable Champion Card Modal */}
+      <SandwichCardModal
+        isOpen={showCardModal}
+        onClose={() => setShowCardModal(false)}
+        champion={champion}
+        roundNumber={roundNumber}
+        history={history}
+        onToast={showToast}
+      />
     </div>
   );
 }
