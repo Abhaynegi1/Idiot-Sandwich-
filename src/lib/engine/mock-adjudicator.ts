@@ -14,8 +14,8 @@ export function normalizeEntity(rawInput: string): GameEntity {
   // Default entity archetype
   const canonicalName = `${cleaned.toUpperCase()} SANDWICH`;
   let category: GameEntity["category"] = "Mundane";
-  let power: string | number = Math.floor(Math.random() * 20) + 5;
-  let scaleTier = 15;
+  let power: string | number = Math.floor(Math.random() * 10) + 1;
+  let scaleTier = 10;
   let emoji = "🥪";
   let pixelColor = "#d97706";
   let sandwichDescription = `Freshly assembled ${cleaned} pressed between toasted slices.`;
@@ -119,6 +119,18 @@ export function normalizeEntity(rawInput: string): GameEntity {
     emoji = "🐜";
     pixelColor = "#78350f";
     sandwichDescription = `One minuscule creature lost on a vast expanse of multigrain.`;
+  } else if (
+    cleaned.includes("stick") ||
+    cleaned.includes("twig") ||
+    cleaned.includes("branch") ||
+    cleaned.includes("wood")
+  ) {
+    category = "Mundane";
+    scaleTier = 4;
+    power = "2";
+    emoji = "🪵";
+    pixelColor = "#78350f";
+    sandwichDescription = `A humble fallen twig clamped between crusty bread.`;
   } else if (cleaned.includes("onion")) {
     category = "Mundane";
     scaleTier = 6;
